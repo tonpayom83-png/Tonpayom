@@ -437,10 +437,11 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
       '<label>เบอร์โทร หรือ LINE ID<input type="text" id="f-contact" placeholder="08x-xxx-xxxx" autocomplete="tel"></label></div>' +
       '<label>จังหวัด / ที่ตั้งของงาน<input type="text" id="f-place" placeholder="เช่น อ.เมือง จ.ขอนแก่น"></label>' +
       '<label>เล่าให้ฟังสั้นๆ ว่าต้องการอะไร<textarea id="f-detail" rows="5" placeholder="เช่น ศาลาวัดหลังคารั่ว / อยากสร้างบ้าน 2 ชั้น พื้นที่ดิน 100 ตร.ว."></textarea></label>' +
-      '<button type="submit" class="btn btn-navy" style="min-height:52px">สร้างข้อความขอรับบริการ</button>' +
+      '<input type="checkbox" name="botcheck" id="f-bot" class="sr" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+      '<button type="submit" class="btn btn-navy" id="submitBtn" style="min-height:52px">'+(String(ct.form_key||'').trim()?'ส่งคำขอรับบริการ':'สร้างข้อความขอรับบริการ')+'</button>' +
       '<div class="result" id="result" role="status"><b id="resultTitle"></b><pre id="msg"></pre>' +
       '<div class="acts"><a class="btn btn-navy" id="mailLink" href="#">ส่งทางอีเมล</a><button type="button" class="btn btn-line" id="copyBtn">คัดลอกข้อความ</button></div>' +
-      '<p class="note" id="resultNote">เว็บนี้ยังไม่ได้ส่งข้อความให้อัตโนมัติ กด "ส่งทางอีเมล" เพื่อเปิดแอปอีเมล หรือคัดลอกไปส่งทางโทรศัพท์/LINE ได้</p></div>' +
+      '<p class="note" id="resultNote"></p></div>' +
       '</form></div></section>';
 
     document.querySelector('main').innerHTML = h;
@@ -563,6 +564,8 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     var form = $('form'), result = $('result'), msg = $('msg'), title = $('resultTitle'), note = $('resultNote');
     var mail = $('mailLink'), copy = $('copyBtn');
     var to = String(ct.form_email || '').trim();
+    var key = String(ct.form_key || '').trim();
+    var submit = $('submitBtn');
     form.addEventListener('submit',function(e){
       e.preventDefault();
       var name = $('f-name').value.trim(), contact = $('f-contact').value.trim(),
@@ -570,19 +573,61 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
       if(!name || !contact){
         (name ? $('f-contact') : $('f-name')).focus();
         title.textContent = 'ยังกรอกข้อมูลไม่ครบ';
-        msg.textContent = 'กรุณากรอกชื่อและเบอร์โทร/LINE ID เพื่อให้ติดต่อกลับได้';
+        msg.textContent = 'กรุณากรอกชื่อและเบอร์โทร/LINE ID เพื่อให้ติดต่อกลับได้'; msg.style.display = '';
         result.classList.add('show','error'); mail.style.display='none'; copy.style.display='none'; note.style.display='none';
         return;
       }
       var svc = obj(services[serviceIdx]).title || '-';
-      title.textContent = 'ข้อความของคุณพร้อมแล้ว — เลือกวิธีส่ง';
-      result.classList.remove('error');
-      mail.style.display = to ? '' : 'none'; copy.style.display = ''; note.style.display = '';
+      var subject = 'ขอรับบริการ '+(obj(S.brand).name||'')+' — '+svc;
       formText = 'บริการที่ต้องการ: '+svc+'\nชื่อ/หน่วยงาน: '+name+'\nติดต่อกลับ: '+contact+'\nที่ตั้งงาน: '+(place||'-')+'\nรายละเอียด: '+(detail||'-');
-      msg.textContent = formText;
-      if(to) mail.href = 'mailto:'+to+'?subject='+encodeURIComponent('ขอรับบริการ '+(obj(S.brand).name||'')+' — '+svc)+'&body='+encodeURIComponent(formText);
-      result.classList.add('show');
-      result.scrollIntoView({behavior:'smooth',block:'nearest'});
+      if(to) mail.href = 'mailto:'+to+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(formText);
+
+      function showManual(heading, noteText){
+        title.textContent = heading;
+        result.classList.remove('error');
+        msg.textContent = formText; msg.style.display = '';
+        mail.style.display = to ? '' : 'none'; copy.style.display = '';
+        note.textContent = noteText; note.style.display = '';
+        result.classList.add('show');
+        result.scrollIntoView({behavior:'smooth',block:'nearest'});
+      }
+
+      if(!key){
+        showManual('ข้อความของคุณพร้อมแล้ว — เลือกวิธีส่ง', 'กด "ส่งทางอีเมล" เพื่อเปิดแอปอีเมล หรือคัดลอกไปส่งทางโทรศัพท์/LINE ได้');
+        return;
+      }
+
+      // Bots tick the hidden box; pretend success and send nothing.
+      if($('f-bot').checked){ form.reset(); return; }
+
+      submit.disabled = true; submit.textContent = 'กำลังส่ง…';
+      fetch('https://api.web3forms.com/submit', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({
+          access_key: key,
+          subject: subject,
+          from_name: name,
+          'บริการที่ต้องการ': svc,
+          'ชื่อ/หน่วยงาน': name,
+          'เบอร์โทร / LINE': contact,
+          'ที่ตั้งงาน': place || '-',
+          'รายละเอียด': detail || '-'
+        })
+      }).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if(!r.ok || j.success === false) throw new Error(j.message || r.status); }); })
+      .then(function(){
+        title.textContent = 'ส่งคำขอเรียบร้อยแล้ว ขอบคุณที่ติดต่อเรา';
+        msg.style.display = 'none'; mail.style.display = 'none'; copy.style.display = 'none';
+        note.textContent = 'เราจะติดต่อกลับทาง '+contact+' โดยเร็วที่สุด';
+        note.style.display = '';
+        result.classList.remove('error'); result.classList.add('show');
+        result.scrollIntoView({behavior:'smooth',block:'nearest'});
+        form.reset(); setService(services.length - 1);
+      })
+      .catch(function(){
+        showManual('ส่งอัตโนมัติไม่สำเร็จ — ส่งเองได้ตามนี้', 'ระบบส่งข้อความขัดข้องชั่วคราว กด "ส่งทางอีเมล" หรือคัดลอกข้อความไปส่งทางโทรศัพท์/LINE ได้เลย');
+      })
+      .then(function(){ submit.disabled = false; submit.textContent = 'ส่งคำขอรับบริการ'; });
     });
     copy.addEventListener('click',function(){
       var done = function(ok){ copy.textContent = ok ? 'คัดลอกแล้ว ✓' : 'คัดลอกไม่ได้ ลองเลือกข้อความแล้วคัดลอกเอง'; setTimeout(function(){ copy.textContent='คัดลอกข้อความ'; },2500); };

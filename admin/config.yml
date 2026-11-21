@@ -219,7 +219,12 @@ collections:
                   - { name: label, label: ชื่อที่แสดง เช่น โทร / LINE, widget: string }
                   - { name: value, label: เบอร์ / ไอดี / อีเมล / ข้อความที่แสดง, widget: string }
                   - { name: url, label: ลิงก์ (ใส่เฉพาะ Facebook / แผนที่ / อื่นๆ), widget: string, required: false, hint: "โทร อีเมล และ LINE สร้างลิงก์ให้อัตโนมัติ LINE ID ของบัญชีทางการให้ขึ้นต้นด้วย @" }
-              - { name: form_email, label: อีเมลที่รับข้อความจากฟอร์ม, widget: string, required: false }
+              - { name: form_email, label: อีเมลสำรอง (ใช้ตอนลูกค้ากดส่งทางอีเมลเอง), widget: string, required: false }
+              - name: form_key
+                label: รหัส Web3Forms (Access Key) สำหรับส่งฟอร์มเข้าอีเมลอัตโนมัติ
+                widget: string
+                required: false
+                hint: "ขอรหัสฟรีที่ https://web3forms.com ด้วยอีเมลที่อยากรับข้อความ แล้วนำรหัสมาวางที่นี่ ถ้าเว้นว่าง ลูกค้าต้องกดส่งอีเมลหรือคัดลอกข้อความเอง"
               - name: services
                 label: ตัวเลือกบริการในฟอร์ม
                 widget: list
