@@ -234,6 +234,17 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
 .prose img{border-radius:10px;margin:12px 0}
 .prose a{color:var(--orange-text)}
 .prose > :first-child{margin-top:0}
+.sim{margin-top:12px;border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:16px}
+.sim h3{font-size:20px}
+.sim-out{background:var(--mist);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.sim-out > div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sim-out b{color:var(--ink);font-weight:600}
+.sim-out .ok{color:var(--green);font-weight:600}
+.sim-out .no{color:var(--orange-text);font-weight:600}
+.sim svg{width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:12px}
+.sim-leg{margin:0;font-size:13px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+.sim-leg .lm{color:var(--navy)}
+.sim-leg .lv{color:var(--orange)}
 .prose table{width:100%;border-collapse:collapse;font-size:15px;margin:12px 0;display:block;overflow-x:auto}
 .prose th,.prose td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
 .prose th{background:var(--mist);color:var(--ink);font-weight:600}
@@ -575,6 +586,8 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
   }
   function closeViewer(){ $('vBody').innerHTML = ''; if(viewer.close) viewer.close(); else viewer.removeAttribute('open'); }
   $('vClose').addEventListener('click', closeViewer);
+  $('vBody').addEventListener('input', function(e){ if(e.target.closest && e.target.closest('#sim')) simRun(); });
+  $('vBody').addEventListener('change', function(e){ if(e.target.closest && e.target.closest('#sim')) simRun(); });
   viewer.addEventListener('click',function(e){ if(e.target === viewer) closeViewer(); });
   // Esc closes the dialog natively; clear it so a playing video stops (unless it was reopened meanwhile).
   viewer.addEventListener('close',function(){ if(!viewer.open) $('vBody').innerHTML = ''; });
@@ -588,7 +601,9 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     if(String(a.body||'').trim()) h += '<div class="prose">'+md(a.body)+'</div>';
     arr(a.gallery).forEach(function(x){ var p = typeof x === 'string' ? x : obj(x).image; if(p) h += '<img class="vimg" src="'+esc(src(p))+'" alt="" loading="lazy">'; });
     if(a.file) h += '<a class="btn btn-navy" style="align-self:flex-start" href="'+esc(src(a.file))+'" target="_blank" rel="noopener" download>ดาวน์โหลดไฟล์ประกอบ</a>';
+    if(a.simulator === 'beam') h += simBeam();
     openViewer(a.title, h);
+    if(a.simulator === 'beam') simRun();
   }
   document.addEventListener('click',function(e){
     var b = e.target.closest('[data-shot]'); if(!b) return;
@@ -699,6 +714,96 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
         var n = tabs[(j + tabs.length) % tabs.length]; show(n); n.focus();
       });
     });
+  }
+
+  /* ---------- beam simulator (2D, simply supported, uniform load) ---------- */
+  // Same method as the SDM article: ACI/วสท. strength design, units kg, cm, ksc.
+  var SIM_BARS = [['DB12',1.2],['DB16',1.6],['DB20',2.0],['DB25',2.5]];
+  function simBeam(){
+    var opt = SIM_BARS.map(function(b,i){ return '<option value="'+i+'"'+(i===1?' selected':'')+'>'+b[0]+'</option>'; }).join('');
+    function f(id,label,val,unit){
+      return '<label>'+label+'<span class="unit-in"><input type="number" inputmode="decimal" min="0" step="any" id="'+id+'" value="'+val+'"><em>'+unit+'</em></span></label>';
+    }
+    return '<div class="sim" id="sim"><h3>ลองปรับค่าดูเอง</h3>' +
+      '<p class="cnote">คานช่วงเดียว รับน้ำหนักแผ่สม่ำเสมอ ใช้วิธีเดียวกับบทความ ผลนี้เพื่อการศึกษาเท่านั้น ต้องให้วิศวกรตรวจก่อนใช้งานจริง</p>' +
+      '<div class="cgrid">' + f('s-L','ช่วงคาน L','4','ม.') + f('s-wd','น้ำหนักคงที่ wD','1500','กก./ม.') + f('s-wl','น้ำหนักจร wL','600','กก./ม.') + '</div>' +
+      '<div class="cgrid">' + f('s-b','กว้างคาน b','20','ซม.') + f('s-h','สูงคาน h','40','ซม.') + f('s-cov','ระยะหุ้ม','3','ซม.') + f('s-fc',"กำลังอัดคอนกรีต f'c",'240','ksc') + '</div>' +
+      '<div class="cgrid"><label>เหล็กยืน<select id="s-bar">'+opt+'</select></label>' + f('s-fy','กำลังครากเหล็กยืน fy','4000','ksc') + '</div>' +
+      '<div class="sim-out" id="s-out" aria-live="polite"></div>' +
+      '<svg id="s-svg" viewBox="0 0 560 270" role="img" aria-label="แผนภาพโมเมนต์ดัดและแรงเฉือน"></svg>' +
+      '<p class="sim-leg"><span class="lm">■ โมเมนต์ดัด (บน)</span><span class="lv">■ แรงเฉือน (ล่าง)</span></p></div>';
+  }
+  function simRun(){
+    var out = $('s-out'), svg = $('s-svg'); if(!out || !svg) return;
+    var L=num($('s-L').value), wd=num($('s-wd').value), wl=num($('s-wl').value),
+        b=num($('s-b').value), h=num($('s-h').value), cov=num($('s-cov').value),
+        fc=num($('s-fc').value), fy=num($('s-fy').value), bar=SIM_BARS[+$('s-bar').value], db=bar[1];
+    if(!L||!b||!h||!fc||!fy){ out.innerHTML = '<div>กรอกค่าให้ครบเพื่อคำนวณ</div>'; svg.innerHTML=''; return; }
+    var wu = 1.4*wd + 1.7*wl;                 // kg/m
+    var mu = wu*L*L/8;                        // kg-m (max at midspan)
+    var vu = wu*L/2;                          // kg (at support)
+    var dv = 0.6, d = h - cov - dv - db/2;    // cm, effective depth
+    var Mu = mu*100;                          // kg-cm
+    var phi = 0.9, Rn = Mu/(phi*b*d*d);
+    var disc = 1 - 2*Rn/(0.85*fc);
+    var rhoMin = 14/fy, rb = 0.85*0.85*fc/fy*6120/(6120+fy), rhoMax = 0.75*rb;
+    var rows = [];
+    rows.push('<div><span>น้ำหนักประลัย Wu</span><b>'+fmt(wu)+' กก./ม.</b></div>');
+    rows.push('<div><span>โมเมนต์ดัดสูงสุด Mu</span><b>'+fmt(mu,0)+' กก.-ม.</b></div>');
+    rows.push('<div><span>แรงเฉือนที่จุดรองรับ Vu</span><b>'+fmt(vu,0)+' กก.</b></div>');
+    rows.push('<div><span>ความลึกประสิทธิผล d</span><b>'+fmt(d,1)+' ซม.</b></div>');
+    if(disc <= 0 || d <= 0){
+      rows.push('<div class="no"><span>หน้าตัดเล็กเกินไปสำหรับโมเมนต์นี้</span><b>เพิ่มความสูงคานหรือความกว้าง</b></div>');
+      out.innerHTML = rows.join(''); svg.innerHTML = ''; return;
+    }
+    var rho = (0.85*fc/fy)*(1 - Math.sqrt(disc));
+    var rhoUse = Math.max(rho, rhoMin);
+    var as = rhoUse*b*d, area = Math.PI*db*db/4, n = Math.ceil(as/area);
+    var clear = n > 1 ? (b - 2*cov - 2*dv - n*db)/(n-1) : b;
+    var a = n*area*fy/(0.85*fc*b), phiMn = phi*n*area*fy*(d - a/2);
+    rows.push('<div><span>เหล็กที่ต้องการ As</span><b>'+fmt(as,2)+' ตร.ซม. → '+n+'-'+bar[0]+'</b></div>');
+    rows.push(rho > rhoMax
+      ? '<div class="no"><span>อัตราส่วนเหล็ก ρ เกินค่าสูงสุด</span><b>เพิ่มขนาดหน้าตัด</b></div>'
+      : '<div class="ok"><span>ตรวจอัตราส่วนเหล็ก ρ</span><b>ผ่าน</b></div>');
+    rows.push(phiMn >= Mu
+      ? '<div class="ok"><span>กำลังดัดหลังใส่เหล็ก φMn ≥ Mu</span><b>ผ่าน ('+fmt(phiMn/100,0)+' ≥ '+fmt(mu,0)+' กก.-ม.)</b></div>'
+      : '<div class="no"><span>กำลังดัดไม่พอ</span><b>เพิ่มเหล็กหรือขนาดคาน</b></div>');
+    rows.push(clear >= Math.max(2.5, db)
+      ? '<div class="ok"><span>ระยะเหล็กยืนในแถว</span><b>ผ่าน (เว้นช่อง '+fmt(clear,1)+' ซม.)</b></div>'
+      : '<div class="no"><span>เหล็กยืนแน่นเกินไปในแถวเดียว</span><b>เพิ่มความกว้างคาน</b></div>');
+    // shear at d from support, stirrups RB6 two legs
+    var vd = wu*(L/2 - d/100)*1;              // kg
+    var Vc = 0.53*Math.sqrt(fc)*b*d;          // kg
+    var Av = 2*Math.PI*0.36/4;                // cm² for two RB6 legs (d = 0.6 cm)
+    var smax = Math.min(d/2, Av*2400/(3.5*b));
+    var s = smax;
+    if(vd > 0.85*Vc){
+      var vs = vd/0.85 - Vc;
+      s = Math.min(smax, Av*2400*d/Math.max(vs,1));
+    }
+    var sPrac = Math.max(5, Math.floor(s/5)*5);
+    rows.push('<div><span>เหล็กปลอก RB6 (2 ขา)</span><b>@ '+sPrac+' ซม. (ตามข้อจำกัด d/2 และขั้นต่ำ)</b></div>');
+    out.innerHTML = rows.join('');
+    simDraw(svg, L, wu, mu, vu);
+  }
+  function simDraw(svg, L, wu, mu, vu){
+    var X0=50, X1=520, N=60, pts=[], sh=[], i, x, M, V;
+    var mMax = mu || 1, vMax = vu || 1;
+    for(i=0;i<=N;i++){
+      x = L*i/N; M = wu*x*(L-x)/2; V = wu*(L/2 - x);
+      var px = X0 + (X1-X0)*i/N;
+      pts.push((i?'L':'M')+px.toFixed(1)+' '+(120-85*M/mMax).toFixed(1));
+      sh.push((i?'L':'M')+px.toFixed(1)+' '+(205-60*V/vMax).toFixed(1));
+    }
+    svg.innerHTML =
+      '<line x1="'+X0+'" y1="120" x2="'+X1+'" y2="120" stroke="#D9D4C7"/>' +
+      '<line x1="'+X0+'" y1="205" x2="'+X1+'" y2="205" stroke="#D9D4C7"/>' +
+      '<path d="'+pts.join(' ')+'" fill="none" stroke="#14273F" stroke-width="2.5"/>' +
+      '<path d="'+sh.join(' ')+'" fill="none" stroke="#E8742A" stroke-width="2.5"/>' +
+      '<text x="'+X0+'" y="22" font-size="14" fill="#5B6577">โมเมนต์ดัด (กก.-ม.) สูงสุด '+fmt(mu,0)+'</text>' +
+      '<text x="'+X0+'" y="243" font-size="14" fill="#5B6577">แรงเฉือน (กก.) ที่จุดรองรับ ±'+fmt(vu,0)+'</text>' +
+      '<text x="'+X0+'" y="266" font-size="13" fill="#5B6577">0</text>' +
+      '<text x="'+(X1-10)+'" y="266" font-size="13" fill="#5B6577" text-anchor="end">'+fmt(L,2)+' ม.</text>';
   }
 
   /* ---------- form ---------- */

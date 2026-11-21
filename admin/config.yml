@@ -137,6 +137,14 @@ collections:
                   - { name: image, label: รูปปก, widget: image, required: false }
                   - { name: video, label: ลิงก์ YouTube, widget: string, required: false, hint: "วางลิงก์ เช่น https://youtu.be/xxxx หรือ https://www.youtube.com/watch?v=xxxx" }
                   - { name: file, label: "ไฟล์ให้ดาวน์โหลด (PDF, Excel, DWG ฯลฯ)", widget: file, required: false }
+                  - name: simulator
+                    label: เครื่องจำลองท้ายบทความ
+                    widget: select
+                    required: false
+                    default: ""
+                    options:
+                      - { label: ไม่มี, value: "" }
+                      - { label: คานช่วงเดียว (ปรับค่าได้ 2D), value: beam }
                   - { name: body, label: เนื้อหา, widget: markdown, required: false, hint: "บทความที่ยังไม่มีเนื้อหา รูป คลิป หรือไฟล์ จะถูกซ่อนจากเว็บอัตโนมัติ ใส่หัวข้อเก็บไว้ก่อนได้" }
                   - name: gallery
                     label: รูปเพิ่มเติม (แสดงท้ายบทความ)
