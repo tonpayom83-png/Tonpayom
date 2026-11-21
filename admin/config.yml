@@ -73,6 +73,7 @@ collections:
           - name: pillars
             label: การ์ด 3 ใบใต้ส่วนบนสุด
             widget: list
+            required: false
             summary: "{{title}}"
             fields:
               - { name: label, label: ป้ายเล็ก, widget: string, required: false }
@@ -108,10 +109,12 @@ collections:
                 label: หมวดหมู่
                 hint: ชื่อหมวดต้องตรงกับที่เลือกในแต่ละบทความ
                 widget: list
+                required: false
                 field: { name: name, label: ชื่อหมวด, widget: string }
               - name: articles
                 label: บทความ
                 widget: list
+                required: false
                 summary: "{{category}} · {{title}}"
                 fields:
                   - { name: title, label: ชื่อบทความ, widget: string }
@@ -135,6 +138,7 @@ collections:
               - name: groups
                 label: กล่องกลุ่มที่ช่วยเหลือ
                 widget: list
+                required: false
                 summary: "{{title}}"
                 fields:
                   - { name: title, label: หัวข้อ, widget: string }
@@ -151,6 +155,7 @@ collections:
               - name: steps
                 label: ขั้นตอนการทำงาน
                 widget: list
+                required: false
                 summary: "{{title}}"
                 fields:
                   - { name: title, label: ชื่อขั้นตอน, widget: string }
@@ -158,6 +163,7 @@ collections:
               - name: prices
                 label: แพ็กเกจ / ราคา
                 widget: list
+                required: false
                 summary: "{{title}} — {{price}}"
                 fields:
                   - { name: title, label: ชื่อแพ็กเกจ, widget: string }
@@ -176,6 +182,7 @@ collections:
               - name: items
                 label: ผลงาน
                 widget: list
+                required: false
                 summary: "{{title}}"
                 fields:
                   - { name: title, label: ชื่อผลงาน, widget: string }
@@ -204,6 +211,7 @@ collections:
               - name: channels
                 label: ช่องทางติดต่อ (แสดงในส่วนติดต่อและท้ายเว็บ)
                 widget: list
+                required: false
                 summary: "{{label}}: {{value}}"
                 fields:
                   - name: type
@@ -228,6 +236,7 @@ collections:
               - name: services
                 label: ตัวเลือกบริการในฟอร์ม
                 widget: list
+                required: false
                 summary: "{{title}}"
                 fields:
                   - { name: title, label: ชื่อบริการ, widget: string }
