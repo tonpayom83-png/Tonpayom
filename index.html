@@ -617,8 +617,9 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
   function calcSection(c){
     var tabs = [['quick','ค่าก่อสร้างโดยรวม'],['concrete','คอนกรีต'],['rebar','เหล็กเสริม'],['wall','ผนังก่ออิฐ'],['tile','กระเบื้อง']];
     var panels = {
-      quick: '<div class="cgrid">' + field('q-area','พื้นที่ใช้สอยรวม','120','ตร.ม.') +
-        select('q-level','ระดับวัสดุ', arr(c.build_rates).map(function(r){ return r.label; })) + '</div>',
+      quick: '<div class="cgrid">' + select('q-type','ประเภทอาคาร', arr(c.building_types).map(function(r){ return r.label; })) +
+        field('q-area','พื้นที่ใช้สอยรวม','120','ตร.ม.') +
+        select('q-level','ระดับวัสดุ', arr(c.quality_levels).map(function(r){ return r.label; })) + '</div>',
       concrete: '<div class="cgrid">' + field('c-w','กว้าง','0.20','ม.') + field('c-l','ยาว','4','ม.') + field('c-h','หนา / ลึก','0.40','ม.') +
         field('c-n','จำนวน','1','ชิ้น','1') + field('c-waste','เผื่อเสีย','5','%') + field('c-price','ราคาคอนกรีต',num(c.concrete_price),'บาท/ลบ.ม.') + '</div>',
       rebar: '<div class="cgrid">' + select('r-size','ขนาดเหล็ก', BARS.map(function(b){ return b[0]+' ('+fmt(b[1]*b[1]/162,3)+' กก./ม.)'; })) +
@@ -642,15 +643,16 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
       '</div></section>';
   }
   function initCalc(c){
-    var rates = arr(c.build_rates), bricks = arr(c.bricks), share = num(c.material_share) || 65;
+    var types = arr(c.building_types), quals = arr(c.quality_levels), bricks = arr(c.bricks), share = num(c.material_share) || 65;
     function v(id){ var el = $(id); return el ? num(el.value) : 0; }
     function out(id, rows, total){
       $(id).innerHTML = rows.map(function(r){ return '<div><span>'+r[0]+'</span><b>'+r[1]+'</b></div>'; }).join('') +
         (total ? '<div class="ctotal"><span>'+total[0]+'</span><b>'+total[1]+'</b></div>' : '');
     }
     function quick(){
-      var a = v('q-area'), r = obj(rates[+$('q-level').value]), lo = a*num(r.min), hi = a*num(r.max);
-      out('out-quick', [['อัตราค่าก่อสร้าง', fmt(num(r.min))+' – '+fmt(num(r.max))+' บาท/ตร.ม.'],['ค่าก่อสร้างรวม (วัสดุ + ค่าแรง)', baht(lo)+' – '+baht(hi)]],
+      var a = v('q-area'), t = obj(types[+$('q-type').value]), q = obj(quals[+$('q-level').value]), f = num(q.factor) || 1;
+      var rlo = num(t.min)*f, rhi = num(t.max)*f, lo = a*rlo, hi = a*rhi;
+      out('out-quick', [['ประเภท', esc(t.label)],['อัตราค่าก่อสร้าง', fmt(rlo)+' – '+fmt(rhi)+' บาท/ตร.ม.'],['ค่าก่อสร้างรวม (วัสดุ + ค่าแรง)', baht(lo)+' – '+baht(hi)]],
         ['ค่าวัสดุโดยประมาณ (~'+fmt(share)+'%)', baht(lo*share/100)+' – '+baht(hi*share/100)]);
     }
     function concrete(){
@@ -679,7 +681,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
       pane.addEventListener('change', function(e){ if(e.target.id === 'w-type') setBrickPrice(); calcs[k](); });
     });
     setBrickPrice();
-    if(rates.length > 2) $('q-level').value = '1'; // start at the middle (standard) level
+    $('q-level').value = '1'; // start at the standard level
     Object.keys(calcs).forEach(function(k){ calcs[k](); });
 
     var tabs = [].slice.call(document.querySelectorAll('.ctabs [role=tab]'));

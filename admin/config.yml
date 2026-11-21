@@ -205,15 +205,23 @@ collections:
               - { name: price_note, label: หมายเหตุเรื่องราคา (แสดงใต้เครื่องคำนวณ), widget: text, required: false }
               - { name: service_note, label: ข้อความว่ารับเฉพาะงานออกแบบ, widget: text, required: false }
               - { name: material_share, label: สัดส่วนค่าวัสดุจากค่าก่อสร้างรวม (%), widget: number, value_type: float, min: 1, max: 100 }
-              - name: build_rates
-                label: ค่าก่อสร้างต่อตารางเมตร (บาท)
+              - name: building_types
+                label: ประเภทอาคาร (ค่าก่อสร้างต่อ ตร.ม. ระดับมาตรฐาน)
                 widget: list
                 required: false
                 summary: "{{label}}: {{min}}–{{max}}"
                 fields:
-                  - { name: label, label: ระดับ, widget: string }
+                  - { name: label, label: ชื่อประเภท, widget: string }
                   - { name: min, label: ต่ำสุด (บาท/ตร.ม.), widget: number, value_type: float }
                   - { name: max, label: สูงสุด (บาท/ตร.ม.), widget: number, value_type: float }
+              - name: quality_levels
+                label: ระดับวัสดุ (ตัวคูณจากราคามาตรฐาน)
+                widget: list
+                required: false
+                summary: "{{label}}"
+                fields:
+                  - { name: label, label: ชื่อระดับ, widget: string }
+                  - { name: factor, label: ตัวคูณ (1 = มาตรฐาน), widget: number, value_type: float }
               - { name: concrete_price, label: ราคาคอนกรีตผสมเสร็จ (บาท/ลบ.ม.), widget: number, value_type: float }
               - { name: rebar_price, label: ราคาเหล็กเสริม (บาท/กก.), widget: number, value_type: float }
               - name: bricks
