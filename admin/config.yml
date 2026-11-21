@@ -145,6 +145,9 @@ collections:
                     options:
                       - { label: ไม่มี, value: "" }
                       - { label: คานช่วงเดียว (ปรับค่าได้ 2D), value: beam }
+                      - { label: คานช่วงเดียว 2D + เหล็กเสริม 3D (บทความออกแบบคาน), value: beam3d }
+                      - { label: โครงอาคาร 3 มิติ (บทความอ่านแบบ), value: frame3d }
+                      - { label: เส้นทางน้ำหนัก 3 มิติ (บทความถ่ายน้ำหนัก), value: loadpath3d }
                   - { name: body, label: เนื้อหา, widget: markdown, required: false, hint: "บทความที่ยังไม่มีเนื้อหา รูป คลิป หรือไฟล์ จะถูกซ่อนจากเว็บอัตโนมัติ ใส่หัวข้อเก็บไว้ก่อนได้" }
                   - name: gallery
                     label: รูปเพิ่มเติม (แสดงท้ายบทความ)

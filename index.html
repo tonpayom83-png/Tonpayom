@@ -245,6 +245,22 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
 .sim-leg{margin:0;font-size:13px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
 .sim-leg .lm{color:var(--navy)}
 .sim-leg .lv{color:var(--orange)}
+.sim3d{display:flex;flex-direction:column;gap:10px}
+.sim3d h3{font-size:20px}
+.s3-wrap{display:flex;flex-direction:column;gap:10px}
+.s3-canvas{position:relative;width:100%;aspect-ratio:16/10;min-height:280px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--paper);touch-action:none}
+.s3-canvas canvas{display:block;width:100%;height:100%}
+.s3-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.s3-bar button{min-height:40px;padding:0 14px;border-radius:999px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:var(--navy);border:1px solid var(--field)}
+.s3-bar button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.s3-chk{flex-direction:row !important;align-items:center;gap:8px !important;font-size:14px !important;font-weight:500 !important;min-height:36px}
+.s3-chk i{width:14px;height:14px;border-radius:4px;border:1px solid var(--navy);display:inline-block}
+.s3-ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 16px}
+.s3-ctl .unit-in input[type=range]{padding:0 8px;accent-color:var(--orange)}
+.s3-info{background:var(--mist);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.7;color:var(--body)}
+.s3-info b{color:var(--ink)}
+.s3-small{font-size:13px;color:var(--muted);line-height:1.6}
+.s3-load{padding:24px;text-align:center;color:var(--muted);background:var(--mist);border-radius:12px;font-size:14px}
 .prose table{width:100%;border-collapse:collapse;font-size:15px;margin:12px 0;display:block;overflow-x:auto}
 .prose th,.prose td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
 .prose th{background:var(--mist);color:var(--ink);font-weight:600}
@@ -584,13 +600,13 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     if(viewer.showModal) viewer.showModal(); else viewer.setAttribute('open','');
     $('vBody').scrollTop = 0; viewer.scrollTop = 0;
   }
-  function closeViewer(){ $('vBody').innerHTML = ''; if(viewer.close) viewer.close(); else viewer.removeAttribute('open'); }
+  function closeViewer(){ dispose3d(); $('vBody').innerHTML = ''; if(viewer.close) viewer.close(); else viewer.removeAttribute('open'); }
   $('vClose').addEventListener('click', closeViewer);
-  $('vBody').addEventListener('input', function(e){ if(e.target.closest && e.target.closest('#sim')) simRun(); });
-  $('vBody').addEventListener('change', function(e){ if(e.target.closest && e.target.closest('#sim')) simRun(); });
+  $('vBody').addEventListener('input', function(e){ if(e.target.closest && e.target.closest('#sim') && !e.target.closest('#s3-box')) simRun(); });
+  $('vBody').addEventListener('change', function(e){ if(e.target.closest && e.target.closest('#sim') && !e.target.closest('#s3-box')) simRun(); });
   viewer.addEventListener('click',function(e){ if(e.target === viewer) closeViewer(); });
   // Esc closes the dialog natively; clear it so a playing video stops (unless it was reopened meanwhile).
-  viewer.addEventListener('close',function(){ if(!viewer.open) $('vBody').innerHTML = ''; });
+  viewer.addEventListener('close',function(){ if(!viewer.open){ dispose3d(); $('vBody').innerHTML = ''; } });
 
   function openArticle(a){
     if(!a) return;
@@ -601,9 +617,14 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     if(String(a.body||'').trim()) h += '<div class="prose">'+md(a.body)+'</div>';
     arr(a.gallery).forEach(function(x){ var p = typeof x === 'string' ? x : obj(x).image; if(p) h += '<img class="vimg" src="'+esc(src(p))+'" alt="" loading="lazy">'; });
     if(a.file) h += '<a class="btn btn-navy" style="align-self:flex-start" href="'+esc(src(a.file))+'" target="_blank" rel="noopener" download>ดาวน์โหลดไฟล์ประกอบ</a>';
-    if(a.simulator === 'beam') h += simBeam();
+    var sim = a.simulator || '';
+    dispose3d(); S3.last = null;
+    if(sim === 'beam' || sim === 'beam3d') h += simBeam(sim === 'beam3d');
+    else if(sim === 'frame3d') h += sim3dBlock('โมเดลโครงอาคาร 3 มิติ', 'โครงอาคาร 2 ชั้น 3 × 3 เสา ติดป้ายกริดและชื่อชิ้นส่วนแบบเดียวกับในแบบก่อสร้าง กดที่ชิ้นส่วนเพื่อดูว่าต้องอ่านจากแผ่นแบบไหน');
+    else if(sim === 'loadpath3d') h += sim3dBlock('เส้นทางน้ำหนักแบบ 3 มิติ', 'เลือกเสา จำนวนชั้น และกำลังรับน้ำหนักของดิน แล้วดูพื้นที่รับน้ำหนัก น้ำหนักสะสมในเสา และขนาดฐานรากที่ได้');
     openViewer(a.title, h);
-    if(a.simulator === 'beam') simRun();
+    if(sim === 'beam' || sim === 'beam3d') simRun();
+    if(/3d$/.test(sim)) mount3d(sim);
   }
   document.addEventListener('click',function(e){
     var b = e.target.closest('[data-shot]'); if(!b) return;
@@ -719,7 +740,38 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
   /* ---------- beam simulator (2D, simply supported, uniform load) ---------- */
   // Same method as the SDM article: ACI/วสท. strength design, units kg, cm, ksc.
   var SIM_BARS = [['DB12',1.2],['DB16',1.6],['DB20',2.0],['DB25',2.5]];
-  function simBeam(){
+  var S3 = { model: null, last: null };
+  function loadScript(src){
+    return new Promise(function(res, rej){
+      var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = function(){ rej(new Error(src)); };
+      document.head.appendChild(s);
+    });
+  }
+  var s3Promise = null;
+  function loadSim3D(){
+    if(!s3Promise){
+      s3Promise = loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js')
+        .then(function(){ return loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js'); })
+        .then(function(){ return loadScript('sim3d.js?v=1'); })
+        .catch(function(e){ s3Promise = null; throw e; });
+    }
+    return s3Promise;
+  }
+  function dispose3d(){ if(S3.model && S3.model.dispose) S3.model.dispose(); S3.model = null; }
+  function mount3d(kind){
+    var box = $('s3-box'); if(!box) return;
+    box.innerHTML = '<div class="s3-load">กำลังโหลดโมเดล 3 มิติ…</div>';
+    loadSim3D().then(function(){
+      if(!viewer.open || !document.body.contains(box)) return;
+      box.innerHTML = '';
+      S3.model = window.Sim3D.mount(kind, box);
+      if(S3.model && S3.last && S3.model.update) S3.model.update(S3.last);
+    }).catch(function(){ box.innerHTML = '<div class="s3-load">โหลดโมเดล 3 มิติไม่สำเร็จ ลองรีเฟรชหน้าอีกครั้ง</div>'; });
+  }
+  function sim3dBlock(title, desc){
+    return '<div class="sim3d" id="sim3d"><h3>'+title+'</h3><p class="cnote">'+desc+'</p><div id="s3-box"></div></div>';
+  }
+  function simBeam(with3d){
     var opt = SIM_BARS.map(function(b,i){ return '<option value="'+i+'"'+(i===1?' selected':'')+'>'+b[0]+'</option>'; }).join('');
     function f(id,label,val,unit){
       return '<label>'+label+'<span class="unit-in"><input type="number" inputmode="decimal" min="0" step="any" id="'+id+'" value="'+val+'"><em>'+unit+'</em></span></label>';
@@ -730,6 +782,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
       '<div class="cgrid">' + f('s-b','กว้างคาน b','20','ซม.') + f('s-h','สูงคาน h','40','ซม.') + f('s-cov','ระยะหุ้ม','3','ซม.') + f('s-fc',"กำลังอัดคอนกรีต f'c",'240','ksc') + '</div>' +
       '<div class="cgrid"><label>เหล็กยืน<select id="s-bar">'+opt+'</select></label>' + f('s-fy','กำลังครากเหล็กยืน fy','4000','ksc') + '</div>' +
       '<div class="sim-out" id="s-out" aria-live="polite"></div>' +
+      (with3d ? sim3dBlock('โมเดล 3 มิติของคานนี้', 'เหล็กยืน ระยะเหล็กปลอก และขนาดคานเปลี่ยนตามค่าที่กรอกด้านบน ลากเพื่อหมุน ลองเลื่อนแถบ "ตัดคานดูด้านใน" เพื่อดูเหล็กในหน้าตัด') : '') +
       '<svg id="s-svg" viewBox="0 0 560 270" role="img" aria-label="แผนภาพโมเมนต์ดัดและแรงเฉือน"></svg>' +
       '<p class="sim-leg"><span class="lm">■ โมเมนต์ดัด (บน)</span><span class="lv">■ แรงเฉือน (ล่าง)</span></p></div>';
   }
@@ -785,6 +838,8 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     rows.push('<div><span>เหล็กปลอก RB6 (2 ขา)</span><b>@ '+sPrac+' ซม. (ตามข้อจำกัด d/2 และขั้นต่ำ)</b></div>');
     out.innerHTML = rows.join('');
     simDraw(svg, L, wu, mu, vu);
+    S3.last = { L: L, b: b, h: h, cov: cov, n: n, db: db, s: sPrac, wu: wu };
+    if(S3.model && S3.model.update) S3.model.update(S3.last);
   }
   function simDraw(svg, L, wu, mu, vu){
     var X0=50, X1=520, N=60, pts=[], sh=[], i, x, M, V;
