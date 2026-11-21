@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>tonpayom — วิศวกรรมเพื่อการเรียนรู้ ชุมชน และบ้านของทุกคน</title>
 <meta name="description" content="แหล่งเรียนรู้งานวิศวกรรมสำหรับนักศึกษา งานจิตอาสาช่วยโรงเรียน วัด ชาวบ้าน และบริการออกแบบ-เขียนแบบบ้าน">
+<meta property="og:type" content="website">
+<meta property="og:title" content="tonpayom — วิศวกรรมเพื่อการเรียนรู้ ชุมชน และบ้านของทุกคน">
+<meta property="og:description" content="แหล่งเรียนรู้งานวิศวกรรมสำหรับนักศึกษา งานจิตอาสาช่วยโรงเรียน วัด ชาวบ้าน และบริการออกแบบ-เขียนแบบบ้าน">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36' fill='none' stroke='%2314273F' stroke-width='2.4'%3E%3Crect x='2' y='2' width='32' height='32' rx='6' fill='%23F6F4EF'/%3E%3Cpath d='M8 26 L18 9 L28 26 Z M18 9 V26 M12 20 H24'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
@@ -18,11 +22,13 @@
 html{scroll-behavior:smooth;scroll-padding-top:84px}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 h1,h2,h3{font-family:Anuphan,'IBM Plex Sans Thai',sans-serif;margin:0}
+img{max-width:100%;display:block}
 a{color:var(--navy);transition:color .2s}
 a:hover{color:var(--orange-text)}
 :focus-visible{outline:3px solid var(--orange);outline-offset:2px}
 .wrap{max-width:1240px;margin:0 auto;padding:0 32px}
 .eyebrow{font-size:15px;font-weight:600;color:var(--orange-text)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 26px;border-radius:10px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid transparent;transition:transform .2s,background-color .2s,color .2s}
 .btn:hover{transform:translateY(-2px)}
 .btn-orange{background:var(--orange);color:var(--navy)}
@@ -31,11 +37,13 @@ a:hover{color:var(--orange-text)}
 .btn-ghost:hover{color:#fff;background:rgba(255,255,255,.12)}
 .btn-navy{background:var(--navy);color:#fff}
 .btn-navy:hover{color:#fff}
+.btn-line{border-color:var(--navy);color:var(--navy);background:#fff}
 
 /* header */
 header.top{position:sticky;top:0;z-index:50;background:rgba(246,244,239,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:Anuphan,sans-serif;font-size:24px;font-weight:700;letter-spacing:-.5px}
+.logo img{height:36px;width:auto}
 nav.main{display:flex;gap:28px;font-weight:500}
 nav.main a{text-decoration:none;padding:10px 0}
 .menu-btn{display:none;width:48px;height:48px;border:1px solid var(--field);border-radius:10px;background:#fff;align-items:center;justify-content:center;cursor:pointer}
@@ -47,10 +55,11 @@ nav.main a{text-decoration:none;padding:10px 0}
 .hero .wrap{display:flex;flex-wrap:wrap;gap:56px;align-items:center;padding-top:96px;padding-bottom:120px}
 .hero-text{flex:1 1 520px;display:flex;flex-direction:column;gap:24px}
 .pill{align-self:flex-start;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:6px 14px;font-size:14px}
-.hero h1{font-size:60px;line-height:1.15;font-weight:700}
+.hero h1{font-size:60px;line-height:1.15;font-weight:700;white-space:pre-line}
 .hero p{margin:0;font-size:20px;line-height:1.7;color:#D7DEE8;max-width:560px}
 .hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px}
 .hero-art{flex:1 1 420px}
+.hero-art img{width:100%;border-radius:16px;aspect-ratio:4/3;object-fit:cover}
 .plan{width:100%;height:auto;display:block}
 
 /* three cards */
@@ -78,26 +87,31 @@ section.block{padding:112px 0 0}
 .chip{min-height:44px;padding:0 18px;border-radius:999px;font:inherit;font-size:15px;font-weight:500;cursor:pointer;background:#fff;color:var(--navy);border:1px solid var(--field);transition:background-color .2s,color .2s}
 .chip[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
 .articles{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px}
-.article{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-.thumb{height:120px;display:flex;align-items:center;justify-content:center}
+.article{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;text-align:left;font:inherit;color:inherit;padding:0;width:100%}
+button.article{cursor:pointer;transition:translate .3s,box-shadow .3s}
+button.article:hover{translate:0 -6px;box-shadow:0 18px 36px rgba(20,39,63,.12)}
+.thumb{height:140px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.play{position:absolute;width:52px;height:52px;border-radius:50%;background:rgba(20,39,63,.85);display:flex;align-items:center;justify-content:center}
 .article .body{padding:20px;display:flex;flex-direction:column;gap:10px}
 .article .tag{font-size:13px;font-weight:600;color:var(--orange-text)}
 .article h3{font-size:20px;line-height:1.4;font-weight:600}
 .article .kind{font-size:14px;color:var(--muted)}
+.soon{font-size:13px;color:var(--muted);font-style:italic}
 .empty{grid-column:1/-1;color:var(--muted);padding:24px 0}
 
 /* community */
 .community{background:var(--sage);margin-top:112px;padding:96px 0}
 .community .wrap{display:flex;flex-wrap:wrap;gap:56px;align-items:flex-start}
 .community .left{flex:1 1 440px;display:flex;flex-direction:column;gap:18px}
-.community h2{font-size:42px;line-height:1.25;font-weight:700}
+.community h2{font-size:42px;line-height:1.25;font-weight:700;white-space:pre-line}
 .community p{margin:0;font-size:18px;line-height:1.75;color:#2E3B35}
 .community .eyebrow{color:var(--green)}
 .btn-green{align-self:flex-start;background:var(--green);color:#fff}
 .btn-green:hover{color:#fff}
 .who{flex:1 1 520px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.who div{background:#fff;border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:8px}
-.who div:hover{translate:0 -6px;box-shadow:0 18px 36px rgba(20,39,63,.1)}
+.who > div{background:#fff;border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:8px}
+.who > div:hover{translate:0 -6px;box-shadow:0 18px 36px rgba(20,39,63,.1)}
 .who h3{font-size:20px;font-weight:700}
 .who span{font-size:15px;line-height:1.65;color:var(--body)}
 
@@ -116,19 +130,32 @@ section.block{padding:112px 0 0}
 .price b{font-size:18px;font-weight:600}
 .price .big{font-family:Anuphan,sans-serif;font-size:30px;font-weight:700}
 .price .big small{font-family:'IBM Plex Sans Thai',sans-serif;font-size:16px;font-weight:500;color:var(--muted)}
+.price.dark .big small{color:#B9C3D1}
 .price span{font-size:15px;line-height:1.65;color:var(--body)}
 .price.dark span{color:#D7DEE8}
 
 /* portfolio */
-.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
-.shot{height:240px;border-radius:14px;border:1.5px dashed var(--field);display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:16px}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+.shot{border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line);padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;transition:translate .3s,box-shadow .3s}
+.shot:hover{translate:0 -6px;box-shadow:0 18px 36px rgba(20,39,63,.12)}
+.shot .ph{height:220px;background:var(--mist);position:relative;display:flex;align-items:center;justify-content:center}
+.shot .ph img{width:100%;height:100%;object-fit:cover}
+.shot .cap{padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.shot b{font-size:17px;font-weight:600}
+.shot span{font-size:14px;color:var(--muted)}
+.shot-empty{height:200px;border-radius:14px;border:1.5px dashed var(--field);display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:16px;grid-column:1/-1}
 
-/* contact form */
+/* contact */
 .contact{padding:112px 0}
 .contact .wrap{display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start}
 .contact .info{flex:1 1 320px;display:flex;flex-direction:column;gap:16px}
 .contact h2{font-size:38px;line-height:1.25;font-weight:700}
 .contact ul{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;color:var(--body);font-size:15px}
+.channels{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.channel{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;text-decoration:none;min-height:52px}
+.channel .ci{width:32px;height:32px;border-radius:8px;background:var(--mist);display:flex;align-items:center;justify-content:center;flex:none}
+.channel small{display:block;font-size:13px;color:var(--muted)}
+.channel b{font-weight:600;word-break:break-all}
 .formcard{flex:1 1 560px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:36px;display:flex;flex-direction:column;gap:26px}
 fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
 legend{font-weight:600;padding:0;margin-bottom:4px}
@@ -156,10 +183,29 @@ footer .col b{color:#fff}
 footer a{color:#C8D1DD}
 footer a:hover{color:#fff}
 
+/* viewer (article / portfolio) */
+dialog.viewer{border:0;padding:0;border-radius:18px;width:min(820px,calc(100% - 32px));max-height:calc(100% - 48px);background:#fff;color:var(--ink);box-shadow:0 30px 80px rgba(14,29,48,.35)}
+dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
+.viewer .vhead{position:sticky;top:0;background:#fff;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:22px 24px 14px;border-bottom:1px solid var(--line);z-index:1}
+.viewer .vhead h2{font-size:26px;line-height:1.35}
+.viewer .vclose{flex:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--field);background:#fff;cursor:pointer;font-size:22px;line-height:1;color:var(--navy)}
+.viewer .vbody{padding:22px 24px 28px;display:flex;flex-direction:column;gap:18px}
+.viewer .meta{font-size:14px;font-weight:600;color:var(--orange-text)}
+.viewer .vimg{border-radius:12px;width:100%;height:auto}
+.video{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.prose{font-size:17px;line-height:1.8;color:var(--body)}
+.prose h2,.prose h3{color:var(--ink);margin:1.2em 0 .4em;font-size:22px}
+.prose img{border-radius:10px;margin:12px 0}
+.prose a{color:var(--orange-text)}
+.prose > :first-child{margin-top:0}
+
+/* loading / error */
+.loading{min-height:60vh;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+
 /* scroll reveal */
 .reveal{opacity:0;transform:translateY(48px);transition:opacity .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms),transform .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms),translate .3s,box-shadow .3s}
 .reveal.in{opacity:1;transform:none}
-.no-js .reveal{opacity:1;transform:none}
 
 @media (max-width:900px){
   .wrap{padding:0 20px}
@@ -180,30 +226,22 @@ footer a:hover{color:#fff}
   .steps li:last-child{border-bottom:0}
   .formcard{padding:24px}
   .contact{padding:80px 0}
+  .viewer .vhead,.viewer .vbody{padding-left:18px;padding-right:18px}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .reveal{opacity:1;transform:none;transition:none}
-  .btn:hover,.pcard:hover,.price:hover,.who div:hover{transform:none;translate:none}
+  .btn:hover,.pcard:hover,button.article:hover,.price:hover,.who > div:hover,.shot:hover{transform:none;translate:none}
 }
 </style>
 </head>
-<body class="no-js">
+<body>
 
 <header class="top">
   <div class="wrap">
-    <a class="logo" href="#top" aria-label="tonpayom หน้าแรก">
-      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#14273F" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="6"/><path d="M8 26 L18 9 L28 26 Z"/><path d="M18 9 V26"/><path d="M12 20 H24"/></svg>
-      tonpayom
-    </a>
-    <nav class="main" id="nav" aria-label="เมนูหลัก">
-      <a href="#knowledge">คลังความรู้</a>
-      <a href="#community">ช่วยเหลือชุมชน</a>
-      <a href="#design">ออกแบบ-เขียนแบบบ้าน</a>
-      <a href="#portfolio">ผลงาน</a>
-      <a href="#contact">ติดต่อ</a>
-    </nav>
-    <a class="cta-top" href="#contact">ขอรับบริการ</a>
+    <a class="logo" href="#top" id="logo"></a>
+    <nav class="main" id="nav" aria-label="เมนูหลัก"></nav>
+    <a class="cta-top" href="#contact" id="ctaTop"></a>
     <button class="menu-btn" id="menuBtn" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="nav">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14273F" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
     </button>
@@ -211,293 +249,374 @@ footer a:hover{color:#fff}
 </header>
 
 <main id="top">
-<section class="hero">
-  <div class="wrap">
-    <div class="hero-text">
-      <span class="pill">ความรู้ · ชุมชน · งานออกแบบ</span>
-      <h1>วิศวกรรมที่จับต้องได้<br>เพื่อนักศึกษาและชุมชน</h1>
-      <p>แหล่งเรียนรู้งานวิศวกรรมสำหรับนักศึกษา งานจิตอาสาช่วยโรงเรียน วัด และชาวบ้าน พร้อมบริการออกแบบ-เขียนแบบบ้านสำหรับคนที่อยากสร้างบ้านของตัวเอง</p>
-      <div class="hero-actions">
-        <a class="btn btn-orange" href="#knowledge">เริ่มเรียนรู้</a>
-        <a class="btn btn-ghost" href="#contact">ปรึกษาออกแบบบ้าน</a>
-      </div>
-    </div>
-    <div class="hero-art" aria-hidden="true">
-      <svg class="plan" viewBox="0 0 480 360" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="20" y="20" width="440" height="320" rx="14" stroke-opacity=".45" stroke-dasharray="6 8"/>
-        <path d="M80 280 V150 L240 60 L400 150 V280 Z" stroke-opacity=".95"/>
-        <path d="M80 150 H400" stroke-opacity=".5"/>
-        <rect x="120" y="190" width="60" height="50" stroke="#E8742A"/>
-        <rect x="300" y="190" width="60" height="50" stroke="#E8742A"/>
-        <path d="M210 280 V215 H270 V280" stroke="#E8742A"/>
-        <path d="M60 310 H420 M60 302 V318 M420 302 V318" stroke-opacity=".6"/>
-        <path d="M440 90 V280 M432 90 H448 M432 280 H448" stroke-opacity=".6"/>
-        <circle cx="240" cy="115" r="14" stroke-opacity=".7"/>
-      </svg>
-    </div>
-  </div>
-</section>
-
-<section class="pillars">
-  <div class="wrap">
-    <div class="grid">
-      <a class="pcard reveal" href="#knowledge">
-        <span class="icon" style="background:var(--mist)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#14273F" stroke-width="1.8" aria-hidden="true"><path d="M3 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3z"/><path d="M21 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/></svg></span>
-        <span class="num">01 · สำหรับนักศึกษา</span>
-        <h2>ความรู้งานวิศวกรรม</h2>
-        <p>บทความ เช็กลิสต์ และไฟล์ตัวอย่าง ตั้งแต่โครงสร้าง ไฟฟ้า ไปจนถึงการเขียนแบบ อ่านง่าย ใช้ได้จริง</p>
-        <span class="more" style="color:var(--orange-text)">ดูคลังความรู้ →</span>
-      </a>
-      <a class="pcard reveal" href="#community">
-        <span class="icon" style="background:var(--sage)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2F6B4F" stroke-width="1.8" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M10 21v-6h4v6"/></svg></span>
-        <span class="num">02 · เพื่อชุมชน</span>
-        <h2>ช่วยชาวบ้าน โรงเรียน วัด</h2>
-        <p>งานจิตอาสาด้านวิศวกรรม เช่น ตรวจอาคาร ซ่อมระบบไฟ ออกแบบศาลา ห้องน้ำ หรือโรงอาหาร</p>
-        <span class="more" style="color:var(--green)">ส่งคำขอช่วยเหลือ →</span>
-      </a>
-      <a class="pcard reveal" href="#design">
-        <span class="icon" style="background:var(--peach)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A84A14" stroke-width="1.8" aria-hidden="true"><path d="M3 21V3h18v18z"/><path d="M3 12h9V3"/><path d="M12 12v9"/><path d="M16 7h2"/></svg></span>
-        <span class="num">03 · บริการออกแบบ</span>
-        <h2>ออกแบบ-เขียนแบบบ้าน</h2>
-        <p>สำหรับบริษัทและคนที่สนใจสร้างบ้าน ออกแบบตามงบ พร้อมแบบสำหรับยื่นขออนุญาตก่อสร้าง</p>
-        <span class="more" style="color:var(--orange-text)">ดูขั้นตอนบริการ →</span>
-      </a>
-    </div>
-  </div>
-</section>
-
-<section class="block" id="knowledge">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <div>
-        <span class="eyebrow">คลังความรู้</span>
-        <h2>เรียนวิศวะให้เข้าใจ ไม่ใช่แค่ท่องจำ</h2>
-      </div>
-      <label class="search">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6577" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-        <span style="position:absolute;left:-9999px">ค้นหาบทความ</span>
-        <input type="search" id="q" placeholder="ค้นหา เช่น รอยร้าว, AutoCAD">
-      </label>
-    </div>
-    <div class="chips reveal" id="chips" role="group" aria-label="กรองหมวดบทความ"></div>
-    <div class="articles" id="articles" aria-live="polite"></div>
-  </div>
-</section>
-
-<section class="community" id="community">
-  <div class="wrap">
-    <div class="left reveal">
-      <span class="eyebrow">วิศวกรรมเพื่อชุมชน</span>
-      <h2>ความรู้ที่ดีที่สุด<br>คือความรู้ที่ช่วยคนได้</h2>
-      <p>โรงเรียน วัด หรือชุมชนที่ต้องการคำปรึกษาด้านอาคารและระบบ สามารถแจ้งปัญหาเข้ามาได้ ทีมงานและนักศึกษาจิตอาสาจะช่วยประเมินและวางแผนร่วมกัน</p>
-      <a class="btn btn-green" href="#contact" data-pick="community">แจ้งขอความช่วยเหลือ</a>
-    </div>
-    <div class="who">
-      <div class="reveal"><h3>โรงเรียน</h3><span>ตรวจความปลอดภัยอาคารเรียน ระบบไฟฟ้า ห้องน้ำนักเรียน</span></div>
-      <div class="reveal"><h3>วัด</h3><span>ออกแบบศาลา ซ่อมแซมหลังคา ปรับพื้นที่ให้ผู้สูงอายุเดินสะดวก</span></div>
-      <div class="reveal"><h3>ชาวบ้าน</h3><span>ให้คำปรึกษารอยร้าว ต่อเติมบ้าน ระบายน้ำ แบบไม่มีค่าใช้จ่าย</span></div>
-      <div class="reveal"><h3>นักศึกษาจิตอาสา</h3><span>สมัครร่วมลงพื้นที่ ได้ประสบการณ์จริงคู่กับวิศวกรพี่เลี้ยง</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="block" id="design">
-  <div class="wrap">
-    <div class="reveal">
-      <span class="eyebrow">บริการออกแบบ-เขียนแบบ</span>
-      <h2 class="sec-title" style="margin:8px 0 14px">อยากสร้างบ้าน เริ่มจากแบบที่ดี</h2>
-      <p class="lead">รับออกแบบบ้าน อาคารพาณิชย์ และงานต่อเติม สำหรับบุคคลทั่วไปและบริษัท ทุกขั้นตอนโปร่งใส รู้ราคาก่อนเริ่มงาน</p>
-    </div>
-    <ol class="steps reveal">
-      <li><span class="n">1</span><b>ปรึกษาฟรี</b><span>คุยความต้องการ ขนาดที่ดิน และงบประมาณ</span></li>
-      <li><span class="n">2</span><b>สำรวจพื้นที่</b><span>วัดที่ดิน ดูทิศทางแดด ลม และทางน้ำ</span></li>
-      <li><span class="n">3</span><b>ออกแบบ + 3D</b><span>แปลน รูปด้าน และภาพ 3D ปรับแก้ได้ตามตกลง</span></li>
-      <li><span class="n">4</span><b>แบบก่อสร้าง</b><span>แบบครบชุด ใช้ยื่นขออนุญาตและให้ผู้รับเหมา</span></li>
-    </ol>
-    <div class="prices">
-      <div class="price reveal"><b>แบบบ้านพักอาศัย</b><span class="big">[ราคา] <small>/ ตร.ม.</small></span><span>บ้านชั้นเดียว บ้าน 2 ชั้น พร้อมแบบโครงสร้างและไฟฟ้า</span></div>
-      <div class="price dark reveal"><b>สำหรับบริษัท / โครงการ</b><span class="big">ตามขอบเขตงาน</span><span>อาคารพาณิชย์ โกดัง โครงการบ้านจัดสรร งานเขียนแบบ outsource</span></div>
-      <div class="price reveal"><b>ต่อเติม / รีโนเวท</b><span class="big">[ราคา] <small>เริ่มต้น</small></span><span>ครัวหลังบ้าน โรงจอดรถ ต่อชั้น ปรับปรุงบ้านเก่า</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="block" id="portfolio">
-  <div class="wrap">
-    <h2 class="sec-title sm reveal" style="margin-bottom:28px">ผลงานล่าสุด</h2>
-    <div class="shots">
-      <div class="shot reveal">[ผลงานบ้าน 1]</div>
-      <div class="shot reveal">[งานช่วยโรงเรียน]</div>
-      <div class="shot reveal">[งานศาลาวัด]</div>
-    </div>
-  </div>
-</section>
-
-<section class="contact" id="contact">
-  <div class="wrap">
-    <div class="info reveal">
-      <span class="eyebrow">ติดต่อ</span>
-      <h2>ขอรับบริการ</h2>
-      <p class="lead" style="font-size:17px">เลือกประเภทบริการ กรอกรายละเอียดคร่าวๆ แล้วส่งให้เราทางอีเมลหรือโทรคุยได้เลย</p>
-      <ul>
-        <li>ปรึกษาเบื้องต้นไม่มีค่าใช้จ่าย</li>
-        <li>งานช่วยเหลือชุมชน ไม่คิดค่าบริการ</li>
-        <li>ข้อมูลของคุณใช้เพื่อติดต่อกลับเท่านั้น</li>
-      </ul>
-    </div>
-    <form class="formcard reveal" id="form" novalidate>
-      <fieldset>
-        <legend>ต้องการบริการแบบไหน</legend>
-        <button type="button" class="opt" data-type="student" aria-pressed="false"><b>ความรู้สำหรับนักศึกษา</b><span>ขอบทความ ไฟล์ตัวอย่าง หรือสมัครจิตอาสา</span></button>
-        <button type="button" class="opt" data-type="community" aria-pressed="false"><b>ขอความช่วยเหลือ โรงเรียน / วัด / ชุมชน</b><span>ตรวจอาคาร ซ่อมแซม ออกแบบอาคารเล็กๆ</span></button>
-        <button type="button" class="opt" data-type="design" aria-pressed="true"><b>ออกแบบ-เขียนแบบบ้าน</b><span>สำหรับบริษัท หรือผู้สนใจสร้างบ้าน</span></button>
-      </fieldset>
-      <div class="row">
-        <label>ชื่อ-นามสกุล / ชื่อหน่วยงาน<input type="text" id="f-name" placeholder="เช่น โรงเรียนบ้านหนองแสง" autocomplete="name"></label>
-        <label>เบอร์โทร หรือ LINE ID<input type="text" id="f-contact" placeholder="08x-xxx-xxxx" autocomplete="tel"></label>
-      </div>
-      <label>จังหวัด / ที่ตั้งของงาน<input type="text" id="f-place" placeholder="เช่น อ.เมือง จ.ขอนแก่น"></label>
-      <label>เล่าให้ฟังสั้นๆ ว่าต้องการอะไร<textarea id="f-detail" rows="5" placeholder="เช่น ศาลาวัดหลังคารั่ว / อยากสร้างบ้าน 2 ชั้น พื้นที่ดิน 100 ตร.ว."></textarea></label>
-      <button type="submit" class="btn btn-navy" style="min-height:52px">สร้างข้อความขอรับบริการ</button>
-      <div class="result" id="result" role="status">
-        <b id="resultTitle">ข้อความของคุณพร้อมแล้ว — เลือกวิธีส่ง</b>
-        <pre id="msg"></pre>
-        <div class="acts">
-          <a class="btn btn-navy" id="mailLink" href="#">ส่งทางอีเมล</a>
-          <button type="button" class="btn" id="copyBtn" style="border-color:var(--navy);color:var(--navy);background:#fff">คัดลอกข้อความ</button>
-        </div>
-        <p class="note">เว็บนี้ยังไม่ได้ส่งข้อความให้อัตโนมัติ กด "ส่งทางอีเมล" เพื่อเปิดแอปอีเมล หรือคัดลอกไปส่งทางโทรศัพท์ได้</p>
-      </div>
-    </form>
-  </div>
-</section>
+  <div class="loading" id="loading">กำลังโหลด…</div>
 </main>
 
-<footer>
-  <div class="wrap">
-    <div><div class="brand">tonpayom</div><p>วิศวกรรมเพื่อการเรียนรู้ ชุมชน และบ้านของทุกคน</p></div>
-    <div class="col">
-      <b>ติดต่อ</b>
-      <span>โทร <a href="tel:0810310083">081 031 0083</a></span>
-      <span>LINE [LINE ID]</span>
-      <span>อีเมล <a href="mailto:tonpayom83@gmail.com">tonpayom83@gmail.com</a></span>
-    </div>
-  </div>
-</footer>
+<footer id="footer"></footer>
 
+<dialog class="viewer" id="viewer" aria-labelledby="vTitle">
+  <div class="vhead"><h2 id="vTitle"></h2><button type="button" class="vclose" id="vClose" aria-label="ปิด">×</button></div>
+  <div class="vbody" id="vBody"></div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script>
 (function(){
-  document.body.classList.remove('no-js');
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
 
-  /* mobile menu */
-  var nav=document.getElementById('nav'), btn=document.getElementById('menuBtn');
-  btn.addEventListener('click',function(){
-    var open=nav.classList.toggle('open');
-    btn.setAttribute('aria-expanded',open?'true':'false');
-  });
-  nav.addEventListener('click',function(e){ if(e.target.tagName==='A'){ nav.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }});
+  /* ---------- helpers ---------- */
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function arr(a){ return Array.isArray(a) ? a : []; }
+  function obj(o){ return o && typeof o === 'object' ? o : {}; }
+  // CMS may save "/images/uploads/x.jpg"; the site lives under a sub-path, so make it relative.
+  function src(p){
+    p = String(p || '').trim();
+    if(!p) return '';
+    if(/^(https?:)?\/\//i.test(p) || /^data:/i.test(p)) return p;
+    return p.replace(/^\/+/, '');
+  }
+  function safeUrl(u){
+    u = String(u || '').trim();
+    return /^(https?:|mailto:|tel:)/i.test(u) ? u : (u && !/^[a-z]+:/i.test(u) ? u : '');
+  }
+  function youtubeId(u){
+    u = String(u || '').trim();
+    if(!u) return '';
+    var m = u.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/i);
+    if(m) return m[1];
+    return /^[\w-]{11}$/.test(u) ? u : '';
+  }
+  function ytEmbed(id){
+    return '<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/'+id+'" title="วิดีโอ" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+  }
+  function ytThumb(id){ return 'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg'; }
+  function md(text){
+    text = String(text || '');
+    if(!text.trim()) return '';
+    if(window.marked && window.DOMPurify){
+      return DOMPurify.sanitize(marked.parse(text), {ADD_ATTR:['target']});
+    }
+    return '<p>'+esc(text).replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>')+'</p>';
+  }
+  var PLAY = '<span class="play" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>';
+  var LOGO_SVG = '<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#14273F" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="6"/><path d="M8 26 L18 9 L28 26 Z"/><path d="M18 9 V26"/><path d="M12 20 H24"/></svg>';
+  var HERO_SVG = '<svg class="plan" viewBox="0 0 480 360" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="20" y="20" width="440" height="320" rx="14" stroke-opacity=".45" stroke-dasharray="6 8"/><path d="M80 280 V150 L240 60 L400 150 V280 Z" stroke-opacity=".95"/><path d="M80 150 H400" stroke-opacity=".5"/><rect x="120" y="190" width="60" height="50" stroke="#E8742A"/><rect x="300" y="190" width="60" height="50" stroke="#E8742A"/><path d="M210 280 V215 H270 V280" stroke="#E8742A"/><path d="M60 310 H420 M60 302 V318 M420 302 V318" stroke-opacity=".6"/><path d="M440 90 V280 M432 90 H448 M432 280 H448" stroke-opacity=".6"/><circle cx="240" cy="115" r="14" stroke-opacity=".7"/></svg>';
+  var PILLAR = {
+    blue:   {bg:'var(--mist)',  fg:'#14273F', more:'var(--navy)',        icon:'<path d="M3 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3z"/><path d="M21 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/>'},
+    green:  {bg:'var(--sage)',  fg:'#2F6B4F', more:'var(--green)',       icon:'<path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M10 21v-6h4v6"/>'},
+    orange: {bg:'var(--peach)', fg:'#A84A14', more:'var(--orange-text)', icon:'<path d="M3 21V3h18v18z"/><path d="M3 12h9V3"/><path d="M12 12v9"/><path d="M16 7h2"/>'}
+  };
+  var TONES = ['#E7ECF3','#E3EFE8','#FBE9DC','#EFE7F3','#F3EFE0'];
+  var CH_ICON = {
+    phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+    line:'<path d="M12 4C7 4 3 7.2 3 11.2c0 3.6 3.2 6.6 7.5 7.1l-.5 2.7 3.6-2.6C18 18 21 15 21 11.2 21 7.2 17 4 12 4z"/>',
+    email:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+    facebook:'<path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/>',
+    map:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+    other:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>'
+  };
+  function channelHref(c){
+    var v = String(c.value || '').trim();
+    if(c.url) return safeUrl(c.url);
+    if(c.type === 'phone') return 'tel:'+v.replace(/[^\d+]/g,'');
+    if(c.type === 'email') return 'mailto:'+v;
+    if(c.type === 'line') return v.charAt(0) === '@' ? 'https://line.me/R/ti/p/@'+encodeURIComponent(v.slice(1)) : 'https://line.me/ti/p/~'+encodeURIComponent(v);
+    return safeUrl(v);
+  }
 
-  /* articles */
-  var ARTICLES=[
-    {tag:'นักศึกษา',level:'พื้นฐาน',title:'อ่านแบบโครงสร้างคาน-เสา-ฐานราก ให้เป็นใน 10 นาที',kind:'บทความ'},
-    {tag:'นักศึกษา',level:'พื้นฐาน',title:'ตั้งค่า Layer และ Template AutoCAD สำหรับเขียนแบบบ้าน',kind:'คลิปสอน'},
-    {tag:'นักศึกษา',level:'ปานกลาง',title:'คำนวณขนาดสายไฟและเบรกเกอร์ของบ้านพักอาศัย',kind:'บทความ + ตารางคำนวณ'},
-    {tag:'นักศึกษา',level:'เข้มข้น',title:'เตรียมสอบภาคีวิศวกร: สรุปสูตรและข้อสอบที่ออกบ่อย',kind:'ชุดข้อสอบ'},
-    {tag:'ชุมชน',level:'ทุกระดับ',title:'ตรวจอาคารเรียนเบื้องต้น 10 จุดที่ครูและนักเรียนเช็กเองได้',kind:'เช็กลิสต์'},
-    {tag:'ชุมชน',level:'ทุกระดับ',title:'ศาลาวัดหลังคารั่ว: สาเหตุที่พบบ่อยและวิธีซ่อมที่เหมาะกับงบจำกัด',kind:'คู่มือ'},
-    {tag:'ชุมชน',level:'ทุกระดับ',title:'ส้วมและบ่อเกรอะในชุมชนห่างไกล: ออกแบบอย่างไรให้ใช้ได้นาน',kind:'บทความ'},
-    {tag:'ชุมชน',level:'ทุกระดับ',title:'รอยร้าวผนังบ้านอันตรายไหม: แบบไหนซ่อมเอง แบบไหนต้องเรียกวิศวกร',kind:'บทความ'},
-    {tag:'สร้างบ้าน',level:'ทุกระดับ',title:'ก่อนสร้างบ้าน ต้องเตรียมอะไรบ้าง: ที่ดิน งบ และเอกสารขออนุญาต',kind:'เช็กลิสต์'},
-    {tag:'สร้างบ้าน',level:'ทุกระดับ',title:'แบบบ้านชุดหนึ่งมีอะไรบ้าง และอ่านแบบก่อนจ้างผู้รับเหมาอย่างไร',kind:'บทความ'},
-    {tag:'สร้างบ้าน',level:'ทุกระดับ',title:'บ้านชั้นเดียวหรือสองชั้น: เปรียบเทียบค่าก่อสร้างและการใช้งาน',kind:'บทความเปรียบเทียบ'},
-    {tag:'สร้างบ้าน',level:'ทุกระดับ',title:'ต่อเติมบ้านอย่างไรไม่ให้ร้าว: ฐานราก เสา และรอยต่อ',kind:'บทความ'}
-  ];
-  var TONE={'นักศึกษา':'#E7ECF3','ชุมชน':'#E3EFE8','สร้างบ้าน':'#FBE9DC'};
-  var CATS=['ทั้งหมด','นักศึกษา','ชุมชน','สร้างบ้าน'];
-  var cat='ทั้งหมด', term='';
-  var chips=document.getElementById('chips'), list=document.getElementById('articles'), q=document.getElementById('q');
+  /* ---------- state ---------- */
+  var S = {}, cat = '', term = '', serviceIdx = 0, formText = '';
 
-  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  /* ---------- render ---------- */
+  function render(data){
+    S = data = obj(data);
+    var seo = obj(data.seo), brand = obj(data.brand), nav = obj(data.nav), hero = obj(data.hero),
+        kn = obj(data.knowledge), cm = obj(data.community), ds = obj(data.design),
+        pf = obj(data.portfolio), ct = obj(data.contact);
 
-  function drawChips(){
-    chips.innerHTML=CATS.map(function(c){
+    if(seo.title) document.title = seo.title;
+    setMeta('description', seo.description); setMeta('og:title', seo.title, true); setMeta('og:description', seo.description, true);
+    if(seo.share_image) setMeta('og:image', new URL(src(seo.share_image), location.href).href, true);
+
+    $('logo').innerHTML = (brand.logo ? '<img src="'+esc(src(brand.logo))+'" alt="">' : LOGO_SVG) + esc(brand.name || '');
+    $('logo').setAttribute('aria-label', (brand.name || '') + ' หน้าแรก');
+    var navKeys = ['knowledge','community','design','portfolio','contact'];
+    $('nav').innerHTML = navKeys.filter(function(k){ return nav[k]; }).map(function(k){ return '<a href="#'+k+'">'+esc(nav[k])+'</a>'; }).join('');
+    $('ctaTop').textContent = nav.cta || 'ติดต่อ';
+
+    var h = '';
+    /* hero */
+    h += '<section class="hero"><div class="wrap"><div class="hero-text">' +
+      (hero.pill ? '<span class="pill">'+esc(hero.pill)+'</span>' : '') +
+      '<h1>'+esc(hero.title)+'</h1>' +
+      (hero.text ? '<p>'+esc(hero.text)+'</p>' : '') +
+      '<div class="hero-actions">' +
+        (hero.button_primary ? '<a class="btn btn-orange" href="#knowledge">'+esc(hero.button_primary)+'</a>' : '') +
+        (hero.button_secondary ? '<a class="btn btn-ghost" href="#contact" data-pick="design">'+esc(hero.button_secondary)+'</a>' : '') +
+      '</div></div><div class="hero-art">' + (hero.image ? '<img src="'+esc(src(hero.image))+'" alt="">' : HERO_SVG) + '</div></div></section>';
+
+    /* pillars */
+    var pillars = arr(data.pillars);
+    if(pillars.length){
+      h += '<section class="pillars"><div class="wrap"><div class="grid">' + pillars.map(function(p){
+        var t = PILLAR[p.color] || PILLAR.blue;
+        return '<a class="pcard reveal" href="#'+esc(p.target || 'contact')+'"'+(p.target==='community'?' data-pick="community"':'')+'>' +
+          '<span class="icon" style="background:'+t.bg+'"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="'+t.fg+'" stroke-width="1.8" aria-hidden="true">'+t.icon+'</svg></span>' +
+          (p.label ? '<span class="num">'+esc(p.label)+'</span>' : '') +
+          '<h2>'+esc(p.title)+'</h2>' + (p.text ? '<p>'+esc(p.text)+'</p>' : '') +
+          (p.link_text ? '<span class="more" style="color:'+t.more+'">'+esc(p.link_text)+'</span>' : '') + '</a>';
+      }).join('') + '</div></div></section>';
+    }
+
+    /* knowledge */
+    h += '<section class="block" id="knowledge"><div class="wrap"><div class="sec-head reveal"><div>' +
+      '<span class="eyebrow">'+esc(kn.eyebrow)+'</span><h2>'+esc(kn.title)+'</h2></div>' +
+      '<label class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6577" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>' +
+      '<span class="sr">ค้นหาบทความ</span><input type="search" id="q" placeholder="'+esc(kn.search_placeholder)+'"></label></div>' +
+      '<div class="chips reveal" id="chips" role="group" aria-label="กรองหมวดบทความ"></div>' +
+      '<div class="articles" id="articles"></div><p class="sr" id="articleCount" aria-live="polite"></p></div></section>';
+
+    /* community */
+    h += '<section class="community" id="community"><div class="wrap"><div class="left reveal">' +
+      '<span class="eyebrow">'+esc(cm.eyebrow)+'</span><h2>'+esc(cm.title)+'</h2>' +
+      (cm.text ? '<p>'+esc(cm.text)+'</p>' : '') +
+      (cm.button ? '<a class="btn btn-green" href="#contact" data-pick="community">'+esc(cm.button)+'</a>' : '') +
+      '</div><div class="who">' + arr(cm.groups).map(function(g){
+        return '<div class="reveal"><h3>'+esc(g.title)+'</h3><span>'+esc(g.text)+'</span></div>';
+      }).join('') + '</div></div></section>';
+
+    /* design */
+    h += '<section class="block" id="design"><div class="wrap"><div class="reveal">' +
+      '<span class="eyebrow">'+esc(ds.eyebrow)+'</span><h2 class="sec-title" style="margin:8px 0 14px">'+esc(ds.title)+'</h2>' +
+      (ds.lead ? '<p class="lead">'+esc(ds.lead)+'</p>' : '') + '</div>';
+    var steps = arr(ds.steps);
+    if(steps.length) h += '<ol class="steps reveal">' + steps.map(function(s,i){
+      return '<li><span class="n">'+(i+1)+'</span><b>'+esc(s.title)+'</b><span>'+esc(s.text)+'</span></li>';
+    }).join('') + '</ol>';
+    else h += '<div style="height:40px"></div>';
+    h += '<div class="prices">' + arr(ds.prices).map(function(p){
+      return '<div class="price'+(p.highlight?' dark':'')+' reveal"><b>'+esc(p.title)+'</b><span class="big">'+esc(p.price)+(p.unit?' <small>'+esc(p.unit)+'</small>':'')+'</span><span>'+esc(p.text)+'</span></div>';
+    }).join('') + '</div></div></section>';
+
+    /* portfolio */
+    var items = arr(pf.items);
+    h += '<section class="block" id="portfolio"><div class="wrap"><h2 class="sec-title sm reveal" style="margin-bottom:28px">'+esc(pf.title)+'</h2><div class="shots">';
+    if(items.length){
+      h += items.map(function(it,i){
+        var imgs = arr(it.images).map(function(x){ return typeof x === 'string' ? x : obj(x).image; }).filter(Boolean);
+        var yid = youtubeId(it.video);
+        var cover = imgs[0] ? src(imgs[0]) : (yid ? ytThumb(yid) : '');
+        return '<button type="button" class="shot reveal" data-shot="'+i+'"><div class="ph">' +
+          (cover ? '<img src="'+esc(cover)+'" alt="" loading="lazy">' : '') + (yid ? PLAY : '') + '</div>' +
+          '<div class="cap"><b>'+esc(it.title)+'</b>'+(it.place?'<span>'+esc(it.place)+'</span>':'')+'</div></button>';
+      }).join('');
+    } else {
+      h += '<div class="shot-empty reveal">'+esc(pf.empty_text || '')+'</div>';
+    }
+    h += '</div></div></section>';
+
+    /* contact */
+    var services = arr(ct.services);
+    serviceIdx = Math.max(0, services.length - 1);
+    h += '<section class="contact" id="contact"><div class="wrap"><div class="info reveal">' +
+      '<span class="eyebrow">'+esc(ct.eyebrow)+'</span><h2>'+esc(ct.title)+'</h2>' +
+      (ct.lead ? '<p class="lead" style="font-size:17px">'+esc(ct.lead)+'</p>' : '') +
+      (arr(ct.points).length ? '<ul>'+arr(ct.points).map(function(p){ return '<li>'+esc(p)+'</li>'; }).join('')+'</ul>' : '') +
+      '<div class="channels">' + arr(ct.channels).map(function(c){
+        var href = channelHref(c), ic = CH_ICON[c.type] || CH_ICON.other;
+        var inner = '<span class="ci"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#14273F" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">'+ic+'</svg></span><span><small>'+esc(c.label)+'</small><b>'+esc(c.value)+'</b></span>';
+        return href ? '<a class="channel" href="'+esc(href)+'"'+(/^https?:/i.test(href)?' target="_blank" rel="noopener"':'')+'>'+inner+'</a>' : '<div class="channel">'+inner+'</div>';
+      }).join('') + '</div></div>' +
+      '<form class="formcard reveal" id="form" novalidate><fieldset><legend>ต้องการบริการแบบไหน</legend>' +
+      services.map(function(s,i){
+        return '<button type="button" class="opt" data-idx="'+i+'" aria-pressed="'+(i===serviceIdx)+'"><b>'+esc(s.title)+'</b>'+(s.text?'<span>'+esc(s.text)+'</span>':'')+'</button>';
+      }).join('') + '</fieldset>' +
+      '<div class="row"><label>ชื่อ-นามสกุล / ชื่อหน่วยงาน<input type="text" id="f-name" placeholder="เช่น โรงเรียนบ้านหนองแสง" autocomplete="name"></label>' +
+      '<label>เบอร์โทร หรือ LINE ID<input type="text" id="f-contact" placeholder="08x-xxx-xxxx" autocomplete="tel"></label></div>' +
+      '<label>จังหวัด / ที่ตั้งของงาน<input type="text" id="f-place" placeholder="เช่น อ.เมือง จ.ขอนแก่น"></label>' +
+      '<label>เล่าให้ฟังสั้นๆ ว่าต้องการอะไร<textarea id="f-detail" rows="5" placeholder="เช่น ศาลาวัดหลังคารั่ว / อยากสร้างบ้าน 2 ชั้น พื้นที่ดิน 100 ตร.ว."></textarea></label>' +
+      '<button type="submit" class="btn btn-navy" style="min-height:52px">สร้างข้อความขอรับบริการ</button>' +
+      '<div class="result" id="result" role="status"><b id="resultTitle"></b><pre id="msg"></pre>' +
+      '<div class="acts"><a class="btn btn-navy" id="mailLink" href="#">ส่งทางอีเมล</a><button type="button" class="btn btn-line" id="copyBtn">คัดลอกข้อความ</button></div>' +
+      '<p class="note" id="resultNote">เว็บนี้ยังไม่ได้ส่งข้อความให้อัตโนมัติ กด "ส่งทางอีเมล" เพื่อเปิดแอปอีเมล หรือคัดลอกไปส่งทางโทรศัพท์/LINE ได้</p></div>' +
+      '</form></div></section>';
+
+    document.querySelector('main').innerHTML = h;
+
+    /* footer */
+    $('footer').innerHTML = '<div class="wrap"><div><div class="brand">'+esc(brand.name)+'</div>'+(brand.tagline?'<p>'+esc(brand.tagline)+'</p>':'')+'</div>' +
+      '<div class="col"><b>'+esc(ct.eyebrow || 'ติดต่อ')+'</b>' + arr(ct.channels).map(function(c){
+        var href = channelHref(c);
+        return '<span>'+esc(c.label)+' '+(href?'<a href="'+esc(href)+'"'+(/^https?:/i.test(href)?' target="_blank" rel="noopener"':'')+'>'+esc(c.value)+'</a>':esc(c.value))+'</span>';
+      }).join('') + '</div></div>';
+
+    initKnowledge(kn);
+    initForm(ct);
+    initReveal();
+    if(location.hash){ var t = document.querySelector(location.hash); if(t) t.scrollIntoView(); }
+  }
+
+  function setMeta(name, val, prop){
+    if(!val) return;
+    var sel = prop ? 'meta[property="'+name+'"]' : 'meta[name="'+name+'"]';
+    var m = document.querySelector(sel);
+    if(!m){ m = document.createElement('meta'); m.setAttribute(prop?'property':'name', name); document.head.appendChild(m); }
+    m.setAttribute('content', val);
+  }
+
+  /* ---------- knowledge ---------- */
+  function articleList(){ return arr(obj(S.knowledge).articles); }
+  function hasDetail(a){ return !!(String(a.body||'').trim() || youtubeId(a.video) || a.file || a.image); }
+  function initKnowledge(kn){
+    var cats = ['ทั้งหมด'].concat(arr(kn.categories));
+    cat = 'ทั้งหมด'; term = '';
+    $('chips').innerHTML = cats.map(function(c){
       return '<button type="button" class="chip" data-cat="'+esc(c)+'" aria-pressed="'+(c===cat)+'">'+esc(c)+'</button>';
     }).join('');
+    $('chips').addEventListener('click',function(e){
+      var b = e.target.closest('.chip'); if(!b) return;
+      cat = b.getAttribute('data-cat');
+      [].forEach.call($('chips').children,function(c){ c.setAttribute('aria-pressed', String(c===b)); });
+      drawList();
+    });
+    $('q').addEventListener('input',function(){ term = this.value; drawList(); });
+    $('articles').addEventListener('click',function(e){
+      var b = e.target.closest('[data-article]'); if(!b) return;
+      openArticle(articleList()[+b.getAttribute('data-article')]);
+    });
+    drawList();
   }
   function drawList(){
-    var t=term.trim().toLowerCase();
-    var rows=ARTICLES.filter(function(a){
-      return (cat==='ทั้งหมด'||a.tag===cat) && (!t || (a.title+a.tag+a.kind).toLowerCase().indexOf(t)>-1);
+    var cats = arr(obj(S.knowledge).categories);
+    var t = term.trim().toLowerCase();
+    var rows = [];
+    articleList().forEach(function(a,i){
+      if((cat==='ทั้งหมด'||a.category===cat) && (!t || [a.title,a.category,a.kind,a.level].join(' ').toLowerCase().indexOf(t)>-1)) rows.push([a,i]);
     });
-    if(!rows.length){ list.innerHTML='<p class="empty">ไม่พบบทความที่ตรงกับคำค้น ลองใช้คำอื่นหรือเปลี่ยนหมวด</p>'; return; }
-    list.innerHTML=rows.map(function(a){
-      return '<article class="article"><div class="thumb" style="background:'+TONE[a.tag]+'"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#14273F" stroke-width="1.5" aria-hidden="true"><path d="M3 21V3h18v18z"/><path d="M3 12h9V3"/><path d="M12 12v9"/></svg></div><div class="body"><span class="tag">'+esc(a.tag)+' · '+esc(a.level)+'</span><h3>'+esc(a.title)+'</h3><span class="kind">'+esc(a.kind)+'</span></div></article>';
+    $('articleCount').textContent = 'พบ '+rows.length+' รายการ';
+    if(!rows.length){ $('articles').innerHTML = '<p class="empty">ไม่พบบทความที่ตรงกับคำค้น ลองใช้คำอื่นหรือเปลี่ยนหมวด</p>'; return; }
+    $('articles').innerHTML = rows.map(function(r){
+      var a = r[0], i = r[1], yid = youtubeId(a.video), open = hasDetail(a);
+      var tone = TONES[Math.max(0, cats.indexOf(a.category)) % TONES.length];
+      var cover = a.image ? src(a.image) : (yid ? ytThumb(yid) : '');
+      var thumb = '<div class="thumb" style="background:'+tone+'">' + (cover ? '<img src="'+esc(cover)+'" alt="" loading="lazy">' :
+        '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#14273F" stroke-width="1.5" aria-hidden="true"><path d="M3 21V3h18v18z"/><path d="M3 12h9V3"/><path d="M12 12v9"/></svg>') + (yid ? PLAY : '') + '</div>';
+      var body = '<div class="body"><span class="tag">'+esc(a.category)+(a.level?' · '+esc(a.level):'')+'</span><h3>'+esc(a.title)+'</h3><span class="kind">'+esc(a.kind)+'</span>'+(open?'':'<span class="soon">เนื้อหากำลังจะมาเร็วๆ นี้</span>')+'</div>';
+      return open ? '<button type="button" class="article" data-article="'+i+'">'+thumb+body+'</button>' : '<article class="article">'+thumb+body+'</article>';
     }).join('');
   }
-  chips.addEventListener('click',function(e){
-    var b=e.target.closest('.chip'); if(!b) return;
-    cat=b.getAttribute('data-cat');
-    [].forEach.call(chips.children,function(c){ c.setAttribute('aria-pressed',String(c===b)); });
-    drawList();
-  });
-  q.addEventListener('input',function(){ term=q.value; drawList(); });
-  drawChips(); drawList();
 
-  /* form */
-  var LABEL={student:'ความรู้สำหรับนักศึกษา',community:'ขอความช่วยเหลือ โรงเรียน / วัด / ชุมชน',design:'ออกแบบ-เขียนแบบบ้าน'};
-  var type='design';
-  var opts=[].slice.call(document.querySelectorAll('.opt'));
-  function setType(t){
-    type=t;
-    opts.forEach(function(o){ o.setAttribute('aria-pressed',o.getAttribute('data-type')===t?'true':'false'); });
+  /* ---------- viewer ---------- */
+  var viewer = $('viewer');
+  function openViewer(title, html){
+    $('vTitle').textContent = title || '';
+    $('vBody').innerHTML = html;
+    [].forEach.call($('vBody').querySelectorAll('.prose a[href^="http"]'),function(a){ a.target='_blank'; a.rel='noopener'; });
+    if(viewer.showModal) viewer.showModal(); else viewer.setAttribute('open','');
+    $('vBody').scrollTop = 0; viewer.scrollTop = 0;
   }
-  opts.forEach(function(o){ o.addEventListener('click',function(){ setType(o.getAttribute('data-type')); }); });
-  [].slice.call(document.querySelectorAll('[data-pick]')).forEach(function(a){
-    a.addEventListener('click',function(){ setType(a.getAttribute('data-pick')); });
+  function closeViewer(){ $('vBody').innerHTML = ''; if(viewer.close) viewer.close(); else viewer.removeAttribute('open'); }
+  $('vClose').addEventListener('click', closeViewer);
+  viewer.addEventListener('click',function(e){ if(e.target === viewer) closeViewer(); });
+  // Esc closes the dialog natively; clear it so a playing video stops (unless it was reopened meanwhile).
+  viewer.addEventListener('close',function(){ if(!viewer.open) $('vBody').innerHTML = ''; });
+
+  function openArticle(a){
+    if(!a) return;
+    var yid = youtubeId(a.video), h = '';
+    h += '<span class="meta">'+esc(a.category)+(a.level?' · '+esc(a.level):'')+(a.kind?' · '+esc(a.kind):'')+'</span>';
+    if(yid) h += ytEmbed(yid);
+    else if(a.image) h += '<img class="vimg" src="'+esc(src(a.image))+'" alt="">';
+    if(String(a.body||'').trim()) h += '<div class="prose">'+md(a.body)+'</div>';
+    if(a.file) h += '<a class="btn btn-navy" style="align-self:flex-start" href="'+esc(src(a.file))+'" target="_blank" rel="noopener" download>ดาวน์โหลดไฟล์ประกอบ</a>';
+    openViewer(a.title, h);
+  }
+  document.addEventListener('click',function(e){
+    var b = e.target.closest('[data-shot]'); if(!b) return;
+    var it = arr(obj(S.portfolio).items)[+b.getAttribute('data-shot')]; if(!it) return;
+    var yid = youtubeId(it.video), h = '';
+    if(it.place) h += '<span class="meta">'+esc(it.place)+'</span>';
+    if(yid) h += ytEmbed(yid);
+    arr(it.images).forEach(function(x){ var p = typeof x === 'string' ? x : obj(x).image; if(p) h += '<img class="vimg" src="'+esc(src(p))+'" alt="" loading="lazy">'; });
+    if(String(it.text||'').trim()) h += '<div class="prose">'+md(it.text)+'</div>';
+    openViewer(it.title, h);
   });
 
-  var form=document.getElementById('form'), result=document.getElementById('result'), msg=document.getElementById('msg');
-  var mail=document.getElementById('mailLink'), copy=document.getElementById('copyBtn');
-  var title=document.getElementById('resultTitle'), note=result.querySelector('.note');
-  var text='';
-  form.addEventListener('submit',function(e){
-    e.preventDefault();
-    var name=document.getElementById('f-name').value.trim();
-    var contact=document.getElementById('f-contact').value.trim();
-    var place=document.getElementById('f-place').value.trim();
-    var detail=document.getElementById('f-detail').value.trim();
-    if(!name||!contact){
-      (name?document.getElementById('f-contact'):document.getElementById('f-name')).focus();
-      title.textContent='ยังกรอกข้อมูลไม่ครบ';
-      msg.textContent='กรุณากรอกชื่อและเบอร์โทร/LINE ID เพื่อให้ติดต่อกลับได้';
-      result.classList.add('show','error'); mail.style.display='none'; copy.style.display='none'; note.style.display='none';
-      return;
+  /* ---------- form ---------- */
+  function initForm(ct){
+    var services = arr(ct.services);
+    var opts = [].slice.call(document.querySelectorAll('.opt'));
+    function setService(i){
+      serviceIdx = i;
+      opts.forEach(function(o){ o.setAttribute('aria-pressed', String(+o.getAttribute('data-idx')===i)); });
     }
-    title.textContent='ข้อความของคุณพร้อมแล้ว — เลือกวิธีส่ง';
-    result.classList.remove('error');
-    mail.style.display=''; copy.style.display=''; note.style.display='';
-    text='บริการที่ต้องการ: '+LABEL[type]+'\nชื่อ/หน่วยงาน: '+name+'\nติดต่อกลับ: '+contact+'\nที่ตั้งงาน: '+(place||'-')+'\nรายละเอียด: '+(detail||'-');
-    msg.textContent=text;
-    mail.href='mailto:tonpayom83@gmail.com?subject='+encodeURIComponent('ขอรับบริการ tonpayom — '+LABEL[type])+'&body='+encodeURIComponent(text);
-    result.classList.add('show');
-    result.scrollIntoView({behavior:'smooth',block:'nearest'});
-  });
-  copy.addEventListener('click',function(){
-    var done=function(ok){ copy.textContent=ok?'คัดลอกแล้ว ✓':'คัดลอกไม่ได้ ลองเลือกข้อความแล้วคัดลอกเอง'; setTimeout(function(){copy.textContent='คัดลอกข้อความ';},2500); };
-    try{ navigator.clipboard.writeText(text).then(function(){done(true);},function(){done(false);}); }catch(err){ done(false); }
-  });
+    opts.forEach(function(o){ o.addEventListener('click',function(){ setService(+o.getAttribute('data-idx')); }); });
+    [].forEach.call(document.querySelectorAll('[data-pick]'),function(a){
+      a.addEventListener('click',function(){
+        var key = a.getAttribute('data-pick');
+        for(var i=0;i<services.length;i++){ if(services[i].from === key){ setService(i); break; } }
+      });
+    });
 
-  /* scroll reveal */
-  var items=[].slice.call(document.querySelectorAll('.reveal'));
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(entries){
+    var form = $('form'), result = $('result'), msg = $('msg'), title = $('resultTitle'), note = $('resultNote');
+    var mail = $('mailLink'), copy = $('copyBtn');
+    var to = String(ct.form_email || '').trim();
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+      var name = $('f-name').value.trim(), contact = $('f-contact').value.trim(),
+          place = $('f-place').value.trim(), detail = $('f-detail').value.trim();
+      if(!name || !contact){
+        (name ? $('f-contact') : $('f-name')).focus();
+        title.textContent = 'ยังกรอกข้อมูลไม่ครบ';
+        msg.textContent = 'กรุณากรอกชื่อและเบอร์โทร/LINE ID เพื่อให้ติดต่อกลับได้';
+        result.classList.add('show','error'); mail.style.display='none'; copy.style.display='none'; note.style.display='none';
+        return;
+      }
+      var svc = obj(services[serviceIdx]).title || '-';
+      title.textContent = 'ข้อความของคุณพร้อมแล้ว — เลือกวิธีส่ง';
+      result.classList.remove('error');
+      mail.style.display = to ? '' : 'none'; copy.style.display = ''; note.style.display = '';
+      formText = 'บริการที่ต้องการ: '+svc+'\nชื่อ/หน่วยงาน: '+name+'\nติดต่อกลับ: '+contact+'\nที่ตั้งงาน: '+(place||'-')+'\nรายละเอียด: '+(detail||'-');
+      msg.textContent = formText;
+      if(to) mail.href = 'mailto:'+to+'?subject='+encodeURIComponent('ขอรับบริการ '+(obj(S.brand).name||'')+' — '+svc)+'&body='+encodeURIComponent(formText);
+      result.classList.add('show');
+      result.scrollIntoView({behavior:'smooth',block:'nearest'});
+    });
+    copy.addEventListener('click',function(){
+      var done = function(ok){ copy.textContent = ok ? 'คัดลอกแล้ว ✓' : 'คัดลอกไม่ได้ ลองเลือกข้อความแล้วคัดลอกเอง'; setTimeout(function(){ copy.textContent='คัดลอกข้อความ'; },2500); };
+      try{ navigator.clipboard.writeText(formText).then(function(){done(true);},function(){done(false);}); }catch(err){ done(false); }
+    });
+  }
+
+  /* ---------- reveal ---------- */
+  function initReveal(){
+    var items = [].slice.call(document.querySelectorAll('.reveal'));
+    if(!('IntersectionObserver' in window)){ items.forEach(function(el){ el.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function(entries){
       entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }});
     },{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
-    items.forEach(function(el,i){
-      el.style.setProperty('--d',((i%3)*90)+'ms');
-      io.observe(el);
+    items.forEach(function(el,i){ el.style.setProperty('--d',((i%3)*90)+'ms'); io.observe(el); });
+  }
+
+  /* ---------- menu ---------- */
+  var nav = $('nav'), btn = $('menuBtn');
+  btn.addEventListener('click',function(){
+    var open = nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  nav.addEventListener('click',function(e){ if(e.target.tagName==='A'){ nav.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }});
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape' && nav.classList.contains('open')){ nav.classList.remove('open'); btn.setAttribute('aria-expanded','false'); btn.focus(); }});
+
+  /* ---------- load ---------- */
+  fetch('content/site.json', {cache:'no-cache'})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(render)
+    .catch(function(err){
+      $('loading').innerHTML = 'โหลดข้อมูลเว็บไม่สำเร็จ ลองรีเฟรชหน้าอีกครั้ง';
+      if(window.console) console.error('site.json', err);
     });
-  } else { items.forEach(function(el){ el.classList.add('in'); }); }
 })();
 </script>
 </body>

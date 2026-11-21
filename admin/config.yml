@@ -1,0 +1,237 @@
+# Admin (Sveltia CMS) settings for the tonpayom website.
+# Every save from /admin commits to the main branch; GitHub Pages republishes in 1-2 minutes.
+
+backend:
+  name: github
+  repo: tonpayom83-png/Tonpayom
+  branch: main
+  commit_messages:
+    update: "แก้ไขเนื้อหาเว็บ: {{slug}}"
+    uploadMedia: "อัปโหลด {{path}}"
+    deleteMedia: "ลบ {{path}}"
+
+media_folder: images/uploads
+public_folder: /images/uploads
+
+site_url: https://tonpayom83-png.github.io/Tonpayom/
+display_url: https://tonpayom83-png.github.io/Tonpayom/
+
+collections:
+  - name: site
+    label: เนื้อหาเว็บ
+    editor:
+      preview: false
+    files:
+      - name: content
+        label: แก้ไขทั้งเว็บ
+        file: content/site.json
+        format: json
+        fields:
+          # ---------------- ทั่วไป ----------------
+          - name: brand
+            label: ชื่อเว็บและโลโก้
+            widget: object
+            fields:
+              - { name: name, label: ชื่อเว็บ, widget: string }
+              - { name: logo, label: โลโก้ (ถ้าไม่ใส่จะใช้โลโก้เดิม), widget: image, required: false }
+              - { name: tagline, label: คำโปรยท้ายเว็บ, widget: string, required: false }
+
+          - name: seo
+            label: ข้อมูลสำหรับ Google และการแชร์ลิงก์
+            widget: object
+            collapsed: true
+            fields:
+              - { name: title, label: ชื่อที่แสดงบนแท็บเบราว์เซอร์, widget: string }
+              - { name: description, label: คำอธิบายเว็บ, widget: text }
+              - { name: share_image, label: รูปตอนแชร์ลิงก์ (LINE / Facebook), widget: image, required: false }
+
+          - name: nav
+            label: เมนูด้านบน
+            widget: object
+            collapsed: true
+            hint: เว้นว่างเมนูไหน เมนูนั้นจะถูกซ่อน
+            fields:
+              - { name: knowledge, label: เมนูคลังความรู้, widget: string, required: false }
+              - { name: community, label: เมนูช่วยเหลือชุมชน, widget: string, required: false }
+              - { name: design, label: เมนูออกแบบ, widget: string, required: false }
+              - { name: portfolio, label: เมนูผลงาน, widget: string, required: false }
+              - { name: contact, label: เมนูติดต่อ, widget: string, required: false }
+              - { name: cta, label: ปุ่มมุมขวาบน, widget: string }
+
+          # ---------------- ส่วนบนสุด ----------------
+          - name: hero
+            label: ส่วนบนสุดของหน้า
+            widget: object
+            fields:
+              - { name: pill, label: ป้ายเล็กด้านบน, widget: string, required: false }
+              - { name: title, label: หัวข้อใหญ่ (กด Enter เพื่อขึ้นบรรทัดใหม่), widget: text }
+              - { name: text, label: ข้อความใต้หัวข้อ, widget: text, required: false }
+              - { name: button_primary, label: ปุ่มสีส้ม, widget: string, required: false }
+              - { name: button_secondary, label: ปุ่มขอบขาว, widget: string, required: false }
+              - { name: image, label: รูปด้านขวา (ถ้าไม่ใส่จะใช้ภาพลายเส้นบ้าน), widget: image, required: false }
+
+          - name: pillars
+            label: การ์ด 3 ใบใต้ส่วนบนสุด
+            widget: list
+            summary: "{{title}}"
+            fields:
+              - { name: label, label: ป้ายเล็ก, widget: string, required: false }
+              - { name: title, label: หัวข้อ, widget: string }
+              - { name: text, label: ข้อความ, widget: text, required: false }
+              - { name: link_text, label: ข้อความลิงก์, widget: string, required: false }
+              - name: target
+                label: กดแล้วไปที่ส่วน
+                widget: select
+                options:
+                  - { label: คลังความรู้, value: knowledge }
+                  - { label: ช่วยเหลือชุมชน, value: community }
+                  - { label: ออกแบบ-เขียนแบบ, value: design }
+                  - { label: ผลงาน, value: portfolio }
+                  - { label: ติดต่อ, value: contact }
+              - name: color
+                label: สีและไอคอน
+                widget: select
+                options:
+                  - { label: ฟ้า (หนังสือ), value: blue }
+                  - { label: เขียว (บ้าน/ชุมชน), value: green }
+                  - { label: ส้ม (แปลนบ้าน), value: orange }
+
+          # ---------------- คลังความรู้ ----------------
+          - name: knowledge
+            label: คลังความรู้ (บทความ / คลิปสอน)
+            widget: object
+            fields:
+              - { name: eyebrow, label: ป้ายหัวข้อ, widget: string, required: false }
+              - { name: title, label: หัวข้อ, widget: string }
+              - { name: search_placeholder, label: ข้อความในช่องค้นหา, widget: string, required: false }
+              - name: categories
+                label: หมวดหมู่
+                hint: ชื่อหมวดต้องตรงกับที่เลือกในแต่ละบทความ
+                widget: list
+                field: { name: name, label: ชื่อหมวด, widget: string }
+              - name: articles
+                label: บทความ
+                widget: list
+                summary: "{{category}} · {{title}}"
+                fields:
+                  - { name: title, label: ชื่อบทความ, widget: string }
+                  - { name: category, label: หมวด (พิมพ์ให้ตรงกับชื่อหมวดด้านบน), widget: string }
+                  - { name: level, label: ระดับ, widget: string, required: false }
+                  - { name: kind, label: ประเภท เช่น บทความ / คลิปสอน / เช็กลิสต์, widget: string, required: false }
+                  - { name: image, label: รูปปก, widget: image, required: false }
+                  - { name: video, label: ลิงก์ YouTube, widget: string, required: false, hint: "วางลิงก์ เช่น https://youtu.be/xxxx หรือ https://www.youtube.com/watch?v=xxxx" }
+                  - { name: file, label: "ไฟล์ให้ดาวน์โหลด (PDF, Excel, DWG ฯลฯ)", widget: file, required: false }
+                  - { name: body, label: เนื้อหา, widget: markdown, required: false, hint: "ถ้าไม่มีเนื้อหา รูป คลิป หรือไฟล์ การ์ดจะขึ้นว่า 'กำลังจะมาเร็วๆ นี้'" }
+
+          # ---------------- ชุมชน ----------------
+          - name: community
+            label: ช่วยเหลือชุมชน
+            widget: object
+            fields:
+              - { name: eyebrow, label: ป้ายหัวข้อ, widget: string, required: false }
+              - { name: title, label: หัวข้อ (กด Enter เพื่อขึ้นบรรทัดใหม่), widget: text }
+              - { name: text, label: ข้อความ, widget: text, required: false }
+              - { name: button, label: ข้อความปุ่ม, widget: string, required: false }
+              - name: groups
+                label: กล่องกลุ่มที่ช่วยเหลือ
+                widget: list
+                summary: "{{title}}"
+                fields:
+                  - { name: title, label: หัวข้อ, widget: string }
+                  - { name: text, label: ข้อความ, widget: text }
+
+          # ---------------- ออกแบบ ----------------
+          - name: design
+            label: บริการออกแบบ-เขียนแบบ
+            widget: object
+            fields:
+              - { name: eyebrow, label: ป้ายหัวข้อ, widget: string, required: false }
+              - { name: title, label: หัวข้อ, widget: string }
+              - { name: lead, label: ข้อความใต้หัวข้อ, widget: text, required: false }
+              - name: steps
+                label: ขั้นตอนการทำงาน
+                widget: list
+                summary: "{{title}}"
+                fields:
+                  - { name: title, label: ชื่อขั้นตอน, widget: string }
+                  - { name: text, label: รายละเอียด, widget: text }
+              - name: prices
+                label: แพ็กเกจ / ราคา
+                widget: list
+                summary: "{{title}} — {{price}}"
+                fields:
+                  - { name: title, label: ชื่อแพ็กเกจ, widget: string }
+                  - { name: price, label: ราคา (ตัวใหญ่), widget: string }
+                  - { name: unit, label: หน่วย เช่น / ตร.ม. หรือ เริ่มต้น, widget: string, required: false }
+                  - { name: text, label: รายละเอียด, widget: text, required: false }
+                  - { name: highlight, label: เน้นเป็นการ์ดสีเข้ม, widget: boolean, default: false }
+
+          # ---------------- ผลงาน ----------------
+          - name: portfolio
+            label: ผลงาน (รูป / คลิป)
+            widget: object
+            fields:
+              - { name: title, label: หัวข้อ, widget: string }
+              - { name: empty_text, label: ข้อความตอนยังไม่มีผลงาน, widget: string, required: false }
+              - name: items
+                label: ผลงาน
+                widget: list
+                summary: "{{title}}"
+                fields:
+                  - { name: title, label: ชื่อผลงาน, widget: string }
+                  - { name: place, label: สถานที่ / คำอธิบายสั้น, widget: string, required: false }
+                  - name: images
+                    label: รูปภาพ (รูปแรกจะเป็นรูปปก)
+                    widget: list
+                    required: false
+                    field: { name: image, label: รูป, widget: image }
+                  - { name: video, label: ลิงก์ YouTube, widget: string, required: false }
+                  - { name: text, label: รายละเอียด, widget: markdown, required: false }
+
+          # ---------------- ติดต่อ ----------------
+          - name: contact
+            label: ติดต่อ และช่องทางติดต่อ
+            widget: object
+            fields:
+              - { name: eyebrow, label: ป้ายหัวข้อ, widget: string, required: false }
+              - { name: title, label: หัวข้อ, widget: string }
+              - { name: lead, label: ข้อความใต้หัวข้อ, widget: text, required: false }
+              - name: points
+                label: ข้อความจุดเด่น
+                widget: list
+                required: false
+                field: { name: point, label: ข้อความ, widget: string }
+              - name: channels
+                label: ช่องทางติดต่อ (แสดงในส่วนติดต่อและท้ายเว็บ)
+                widget: list
+                summary: "{{label}}: {{value}}"
+                fields:
+                  - name: type
+                    label: ประเภท
+                    widget: select
+                    options:
+                      - { label: โทรศัพท์, value: phone }
+                      - { label: LINE, value: line }
+                      - { label: อีเมล, value: email }
+                      - { label: Facebook, value: facebook }
+                      - { label: แผนที่, value: map }
+                      - { label: อื่นๆ, value: other }
+                  - { name: label, label: ชื่อที่แสดง เช่น โทร / LINE, widget: string }
+                  - { name: value, label: เบอร์ / ไอดี / อีเมล / ข้อความที่แสดง, widget: string }
+                  - { name: url, label: ลิงก์ (ใส่เฉพาะ Facebook / แผนที่ / อื่นๆ), widget: string, required: false, hint: "โทร อีเมล และ LINE สร้างลิงก์ให้อัตโนมัติ LINE ID ของบัญชีทางการให้ขึ้นต้นด้วย @" }
+              - { name: form_email, label: อีเมลที่รับข้อความจากฟอร์ม, widget: string, required: false }
+              - name: services
+                label: ตัวเลือกบริการในฟอร์ม
+                widget: list
+                summary: "{{title}}"
+                fields:
+                  - { name: title, label: ชื่อบริการ, widget: string }
+                  - { name: text, label: คำอธิบาย, widget: string, required: false }
+                  - name: from
+                    label: เลือกให้อัตโนมัติเมื่อกดปุ่มจากส่วน
+                    widget: select
+                    required: false
+                    options:
+                      - { label: คลังความรู้, value: knowledge }
+                      - { label: ช่วยเหลือชุมชน, value: community }
+                      - { label: ออกแบบ-เขียนแบบ, value: design }
