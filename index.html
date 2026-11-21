@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tonpayom — วิศวกรรมเพื่อการเรียนรู้ ชุมชน และบ้านของทุกคน</title>
+<meta name="description" content="แหล่งเรียนรู้งานวิศวกรรมสำหรับนักศึกษา งานจิตอาสาช่วยโรงเรียน วัด ชาวบ้าน และบริการออกแบบ-เขียนแบบบ้าน">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+:root{
+  --navy:#14273F; --navy-deep:#0E1D30; --paper:#F6F4EF; --line:#D9D4C7; --field:#C9C3B4;
+  --orange:#E8742A; --orange-text:#A84A14; --green:#2F6B4F; --mist:#E7ECF3; --sage:#E3EFE8; --peach:#FBE9DC;
+  --ink:#14273F; --body:#3A4556; --muted:#5B6577;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Anuphan,'IBM Plex Sans Thai',sans-serif;margin:0}
+a{color:var(--navy);transition:color .2s}
+a:hover{color:var(--orange-text)}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 32px}
+.eyebrow{font-size:15px;font-weight:600;color:var(--orange-text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 26px;border-radius:10px;font:inherit;font-size:17px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid transparent;transition:transform .2s,background-color .2s,color .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn-orange{background:var(--orange);color:var(--navy)}
+.btn-orange:hover{color:var(--navy)}
+.btn-ghost{border-color:#fff;color:#fff}
+.btn-ghost:hover{color:#fff;background:rgba(255,255,255,.12)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{color:#fff}
+
+/* header */
+header.top{position:sticky;top:0;z-index:50;background:rgba(246,244,239,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:Anuphan,sans-serif;font-size:24px;font-weight:700;letter-spacing:-.5px}
+nav.main{display:flex;gap:28px;font-weight:500}
+nav.main a{text-decoration:none;padding:10px 0}
+.menu-btn{display:none;width:48px;height:48px;border:1px solid var(--field);border-radius:10px;background:#fff;align-items:center;justify-content:center;cursor:pointer}
+.cta-top{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:10px;background:var(--navy);color:#fff;font-weight:600;text-decoration:none}
+.cta-top:hover{color:#fff;background:var(--orange-text)}
+
+/* hero */
+.hero{background-color:var(--navy);background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:32px 32px;color:#fff}
+.hero .wrap{display:flex;flex-wrap:wrap;gap:56px;align-items:center;padding-top:96px;padding-bottom:120px}
+.hero-text{flex:1 1 520px;display:flex;flex-direction:column;gap:24px}
+.pill{align-self:flex-start;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:6px 14px;font-size:14px}
+.hero h1{font-size:60px;line-height:1.15;font-weight:700}
+.hero p{margin:0;font-size:20px;line-height:1.7;color:#D7DEE8;max-width:560px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px}
+.hero-art{flex:1 1 420px}
+.plan{width:100%;height:auto;display:block}
+
+/* three cards */
+.pillars{margin-top:-64px;position:relative;z-index:2}
+.pillars .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:24px}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px;text-decoration:none;display:flex;flex-direction:column;gap:14px}
+.pcard:hover{translate:0 -6px;box-shadow:0 18px 36px rgba(20,39,63,.12)}
+.icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.pcard .num{font-size:14px;color:var(--muted);font-weight:600}
+.pcard h2{font-size:26px;font-weight:700;color:var(--navy)}
+.pcard p{margin:0;color:var(--body);line-height:1.7}
+.pcard .more{font-weight:600}
+
+section.block{padding:112px 0 0}
+.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:32px}
+.sec-head h2{font-size:42px;line-height:1.25;font-weight:700;margin-top:8px}
+.sec-title{font-size:42px;line-height:1.25;font-weight:700}
+.sec-title.sm{font-size:36px}
+
+/* knowledge */
+.search{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--field);border-radius:12px;padding:0 16px;min-height:48px;min-width:min(320px,100%)}
+.search input{border:0;outline:0;font:inherit;flex:1;background:transparent;color:var(--ink);min-width:0}
+.search:focus-within{outline:3px solid var(--orange);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px}
+.chip{min-height:44px;padding:0 18px;border-radius:999px;font:inherit;font-size:15px;font-weight:500;cursor:pointer;background:#fff;color:var(--navy);border:1px solid var(--field);transition:background-color .2s,color .2s}
+.chip[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.articles{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px}
+.article{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.thumb{height:120px;display:flex;align-items:center;justify-content:center}
+.article .body{padding:20px;display:flex;flex-direction:column;gap:10px}
+.article .tag{font-size:13px;font-weight:600;color:var(--orange-text)}
+.article h3{font-size:20px;line-height:1.4;font-weight:600}
+.article .kind{font-size:14px;color:var(--muted)}
+.empty{grid-column:1/-1;color:var(--muted);padding:24px 0}
+
+/* community */
+.community{background:var(--sage);margin-top:112px;padding:96px 0}
+.community .wrap{display:flex;flex-wrap:wrap;gap:56px;align-items:flex-start}
+.community .left{flex:1 1 440px;display:flex;flex-direction:column;gap:18px}
+.community h2{font-size:42px;line-height:1.25;font-weight:700}
+.community p{margin:0;font-size:18px;line-height:1.75;color:#2E3B35}
+.community .eyebrow{color:var(--green)}
+.btn-green{align-self:flex-start;background:var(--green);color:#fff}
+.btn-green:hover{color:#fff}
+.who{flex:1 1 520px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.who div{background:#fff;border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:8px}
+.who div:hover{translate:0 -6px;box-shadow:0 18px 36px rgba(20,39,63,.1)}
+.who h3{font-size:20px;font-weight:700}
+.who span{font-size:15px;line-height:1.65;color:var(--body)}
+
+/* design service */
+.lead{margin:0;font-size:18px;line-height:1.75;color:var(--body);max-width:720px}
+.steps{list-style:none;margin:40px 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));border:1px solid var(--line);border-radius:16px;background:#fff;overflow:hidden}
+.steps li{padding:28px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.steps li:last-child{border-right:0}
+.steps .n{font-family:Anuphan,sans-serif;font-size:40px;font-weight:700;color:var(--orange)}
+.steps b{font-size:19px;font-weight:600}
+.steps span{font-size:15px;line-height:1.65;color:var(--body)}
+.prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:22px}
+.price{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:12px}
+.price:hover{translate:0 -6px;box-shadow:0 18px 36px rgba(20,39,63,.12)}
+.price.dark{background:var(--navy);color:#fff;border-color:var(--navy)}
+.price b{font-size:18px;font-weight:600}
+.price .big{font-family:Anuphan,sans-serif;font-size:30px;font-weight:700}
+.price .big small{font-family:'IBM Plex Sans Thai',sans-serif;font-size:16px;font-weight:500;color:var(--muted)}
+.price span{font-size:15px;line-height:1.65;color:var(--body)}
+.price.dark span{color:#D7DEE8}
+
+/* portfolio */
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.shot{height:240px;border-radius:14px;border:1.5px dashed var(--field);display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:16px}
+
+/* contact form */
+.contact{padding:112px 0}
+.contact .wrap{display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start}
+.contact .info{flex:1 1 320px;display:flex;flex-direction:column;gap:16px}
+.contact h2{font-size:38px;line-height:1.25;font-weight:700}
+.contact ul{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;color:var(--body);font-size:15px}
+.formcard{flex:1 1 560px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:36px;display:flex;flex-direction:column;gap:26px}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+legend{font-weight:600;padding:0;margin-bottom:4px}
+.opt{text-align:left;font:inherit;color:var(--ink);cursor:pointer;border-radius:12px;padding:16px 18px;min-height:44px;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--field)}
+.opt[aria-pressed="true"]{background:var(--mist);border:2px solid var(--navy);padding:15px 17px}
+.opt b{font-size:17px;font-weight:600}
+.opt span{font-size:14px;color:var(--muted)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+label{display:flex;flex-direction:column;gap:8px;font-size:15px;font-weight:600}
+input[type=text],textarea{min-height:48px;padding:0 14px;border:1px solid var(--field);border-radius:10px;font:inherit;font-weight:400;color:var(--ink);background:#fff;width:100%}
+textarea{padding:12px 14px;resize:vertical}
+.result{display:none;flex-direction:column;gap:16px;background:var(--sage);border-radius:14px;padding:24px}
+.result.show{display:flex}
+.result.error{background:var(--peach)}
+.result pre{margin:0;white-space:pre-wrap;font:inherit;font-size:15px;line-height:1.7;background:#fff;border-radius:10px;padding:16px;color:var(--ink)}
+.result .acts{display:flex;flex-wrap:wrap;gap:12px}
+.note{font-size:14px;color:var(--body);margin:0}
+
+footer{background:var(--navy-deep);color:#C8D1DD}
+footer .wrap{display:flex;flex-wrap:wrap;gap:40px;justify-content:space-between;padding-top:56px;padding-bottom:56px}
+footer .brand{font-family:Anuphan,sans-serif;font-size:24px;font-weight:700;color:#fff}
+footer p{margin:8px 0 0;max-width:360px;line-height:1.7}
+footer .col{display:flex;flex-direction:column;gap:8px;font-size:15px}
+footer .col b{color:#fff}
+footer a{color:#C8D1DD}
+footer a:hover{color:#fff}
+
+/* scroll reveal */
+.reveal{opacity:0;transform:translateY(48px);transition:opacity .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms),transform .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms),translate .3s,box-shadow .3s}
+.reveal.in{opacity:1;transform:none}
+.no-js .reveal{opacity:1;transform:none}
+
+@media (max-width:900px){
+  .wrap{padding:0 20px}
+  nav.main{display:none;position:absolute;left:0;right:0;top:72px;background:var(--paper);border-bottom:1px solid var(--line);flex-direction:column;gap:0;padding:8px 20px 16px}
+  nav.main.open{display:flex}
+  nav.main a{padding:14px 0;border-bottom:1px solid var(--line);font-size:17px}
+  .menu-btn{display:flex}
+  .cta-top{display:none}
+  .hero h1{font-size:38px}
+  .hero p{font-size:17px}
+  .hero .wrap{padding-top:56px;padding-bottom:96px}
+  .sec-head h2,.community h2,.sec-title{font-size:32px}
+  .sec-title.sm{font-size:30px}
+  section.block{padding-top:80px}
+  .community{margin-top:80px;padding:64px 0}
+  .who{grid-template-columns:1fr}
+  .steps li{border-right:0;border-bottom:1px solid var(--line)}
+  .steps li:last-child{border-bottom:0}
+  .formcard{padding:24px}
+  .contact{padding:80px 0}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none;transition:none}
+  .btn:hover,.pcard:hover,.price:hover,.who div:hover{transform:none;translate:none}
+}
+</style>
+</head>
+<body class="no-js">
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="tonpayom หน้าแรก">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#14273F" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="6"/><path d="M8 26 L18 9 L28 26 Z"/><path d="M18 9 V26"/><path d="M12 20 H24"/></svg>
+      tonpayom
+    </a>
+    <nav class="main" id="nav" aria-label="เมนูหลัก">
+      <a href="#knowledge">คลังความรู้</a>
+      <a href="#community">ช่วยเหลือชุมชน</a>
+      <a href="#design">ออกแบบ-เขียนแบบบ้าน</a>
+      <a href="#portfolio">ผลงาน</a>
+      <a href="#contact">ติดต่อ</a>
+    </nav>
+    <a class="cta-top" href="#contact">ขอรับบริการ</a>
+    <button class="menu-btn" id="menuBtn" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="nav">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14273F" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-text">
+      <span class="pill">ความรู้ · ชุมชน · งานออกแบบ</span>
+      <h1>วิศวกรรมที่จับต้องได้<br>เพื่อนักศึกษาและชุมชน</h1>
+      <p>แหล่งเรียนรู้งานวิศวกรรมสำหรับนักศึกษา งานจิตอาสาช่วยโรงเรียน วัด และชาวบ้าน พร้อมบริการออกแบบ-เขียนแบบบ้านสำหรับคนที่อยากสร้างบ้านของตัวเอง</p>
+      <div class="hero-actions">
+        <a class="btn btn-orange" href="#knowledge">เริ่มเรียนรู้</a>
+        <a class="btn btn-ghost" href="#contact">ปรึกษาออกแบบบ้าน</a>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg class="plan" viewBox="0 0 480 360" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="20" y="20" width="440" height="320" rx="14" stroke-opacity=".45" stroke-dasharray="6 8"/>
+        <path d="M80 280 V150 L240 60 L400 150 V280 Z" stroke-opacity=".95"/>
+        <path d="M80 150 H400" stroke-opacity=".5"/>
+        <rect x="120" y="190" width="60" height="50" stroke="#E8742A"/>
+        <rect x="300" y="190" width="60" height="50" stroke="#E8742A"/>
+        <path d="M210 280 V215 H270 V280" stroke="#E8742A"/>
+        <path d="M60 310 H420 M60 302 V318 M420 302 V318" stroke-opacity=".6"/>
+        <path d="M440 90 V280 M432 90 H448 M432 280 H448" stroke-opacity=".6"/>
+        <circle cx="240" cy="115" r="14" stroke-opacity=".7"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="pillars">
+  <div class="wrap">
+    <div class="grid">
+      <a class="pcard reveal" href="#knowledge">
+        <span class="icon" style="background:var(--mist)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#14273F" stroke-width="1.8" aria-hidden="true"><path d="M3 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3z"/><path d="M21 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/></svg></span>
+        <span class="num">01 · สำหรับนักศึกษา</span>
+        <h2>ความรู้งานวิศวกรรม</h2>
+        <p>บทความ เช็กลิสต์ และไฟล์ตัวอย่าง ตั้งแต่โครงสร้าง ไฟฟ้า ไปจนถึงการเขียนแบบ อ่านง่าย ใช้ได้จริง</p>
+        <span class="more" style="color:var(--orange-text)">ดูคลังความรู้ →</span>
+      </a>
+      <a class="pcard reveal" href="#community">
+        <span class="icon" style="background:var(--sage)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2F6B4F" stroke-width="1.8" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M10 21v-6h4v6"/></svg></span>
+        <span class="num">02 · เพื่อชุมชน</span>
+        <h2>ช่วยชาวบ้าน โรงเรียน วัด</h2>
+        <p>งานจิตอาสาด้านวิศวกรรม เช่น ตรวจอาคาร ซ่อมระบบไฟ ออกแบบศาลา ห้องน้ำ หรือโรงอาหาร</p>
+        <span class="more" style="color:var(--green)">ส่งคำขอช่วยเหลือ →</span>
+      </a>
+      <a class="pcard reveal" href="#design">
+        <span class="icon" style="background:var(--peach)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A84A14" stroke-width="1.8" aria-hidden="true"><path d="M3 21V3h18v18z"/><path d="M3 12h9V3"/><path d="M12 12v9"/><path d="M16 7h2"/></svg></span>
+        <span class="num">03 · บริการออกแบบ</span>
+        <h2>ออกแบบ-เขียนแบบบ้าน</h2>
+        <p>สำหรับบริษัทและคนที่สนใจสร้างบ้าน ออกแบบตามงบ พร้อมแบบสำหรับยื่นขออนุญาตก่อสร้าง</p>
+        <span class="more" style="color:var(--orange-text)">ดูขั้นตอนบริการ →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="knowledge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <span class="eyebrow">คลังความรู้</span>
+        <h2>เรียนวิศวะให้เข้าใจ ไม่ใช่แค่ท่องจำ</h2>
+      </div>
+      <label class="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6577" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <span style="position:absolute;left:-9999px">ค้นหาบทความ</span>
+        <input type="search" id="q" placeholder="ค้นหา เช่น รอยร้าว, AutoCAD">
+      </label>
+    </div>
+    <div class="chips reveal" id="chips" role="group" aria-label="กรองหมวดบทความ"></div>
+    <div class="articles" id="articles" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="community" id="community">
+  <div class="wrap">
+    <div class="left reveal">
+      <span class="eyebrow">วิศวกรรมเพื่อชุมชน</span>
+      <h2>ความรู้ที่ดีที่สุด<br>คือความรู้ที่ช่วยคนได้</h2>
+      <p>โรงเรียน วัด หรือชุมชนที่ต้องการคำปรึกษาด้านอาคารและระบบ สามารถแจ้งปัญหาเข้ามาได้ ทีมงานและนักศึกษาจิตอาสาจะช่วยประเมินและวางแผนร่วมกัน</p>
+      <a class="btn btn-green" href="#contact" data-pick="community">แจ้งขอความช่วยเหลือ</a>
+    </div>
+    <div class="who">
+      <div class="reveal"><h3>โรงเรียน</h3><span>ตรวจความปลอดภัยอาคารเรียน ระบบไฟฟ้า ห้องน้ำนักเรียน</span></div>
+      <div class="reveal"><h3>วัด</h3><span>ออกแบบศาลา ซ่อมแซมหลังคา ปรับพื้นที่ให้ผู้สูงอายุเดินสะดวก</span></div>
+      <div class="reveal"><h3>ชาวบ้าน</h3><span>ให้คำปรึกษารอยร้าว ต่อเติมบ้าน ระบายน้ำ แบบไม่มีค่าใช้จ่าย</span></div>
+      <div class="reveal"><h3>นักศึกษาจิตอาสา</h3><span>สมัครร่วมลงพื้นที่ ได้ประสบการณ์จริงคู่กับวิศวกรพี่เลี้ยง</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="design">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">บริการออกแบบ-เขียนแบบ</span>
+      <h2 class="sec-title" style="margin:8px 0 14px">อยากสร้างบ้าน เริ่มจากแบบที่ดี</h2>
+      <p class="lead">รับออกแบบบ้าน อาคารพาณิชย์ และงานต่อเติม สำหรับบุคคลทั่วไปและบริษัท ทุกขั้นตอนโปร่งใส รู้ราคาก่อนเริ่มงาน</p>
+    </div>
+    <ol class="steps reveal">
+      <li><span class="n">1</span><b>ปรึกษาฟรี</b><span>คุยความต้องการ ขนาดที่ดิน และงบประมาณ</span></li>
+      <li><span class="n">2</span><b>สำรวจพื้นที่</b><span>วัดที่ดิน ดูทิศทางแดด ลม และทางน้ำ</span></li>
+      <li><span class="n">3</span><b>ออกแบบ + 3D</b><span>แปลน รูปด้าน และภาพ 3D ปรับแก้ได้ตามตกลง</span></li>
+      <li><span class="n">4</span><b>แบบก่อสร้าง</b><span>แบบครบชุด ใช้ยื่นขออนุญาตและให้ผู้รับเหมา</span></li>
+    </ol>
+    <div class="prices">
+      <div class="price reveal"><b>แบบบ้านพักอาศัย</b><span class="big">[ราคา] <small>/ ตร.ม.</small></span><span>บ้านชั้นเดียว บ้าน 2 ชั้น พร้อมแบบโครงสร้างและไฟฟ้า</span></div>
+      <div class="price dark reveal"><b>สำหรับบริษัท / โครงการ</b><span class="big">ตามขอบเขตงาน</span><span>อาคารพาณิชย์ โกดัง โครงการบ้านจัดสรร งานเขียนแบบ outsource</span></div>
+      <div class="price reveal"><b>ต่อเติม / รีโนเวท</b><span class="big">[ราคา] <small>เริ่มต้น</small></span><span>ครัวหลังบ้าน โรงจอดรถ ต่อชั้น ปรับปรุงบ้านเก่า</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="portfolio">
+  <div class="wrap">
+    <h2 class="sec-title sm reveal" style="margin-bottom:28px">ผลงานล่าสุด</h2>
+    <div class="shots">
+      <div class="shot reveal">[ผลงานบ้าน 1]</div>
+      <div class="shot reveal">[งานช่วยโรงเรียน]</div>
+      <div class="shot reveal">[งานศาลาวัด]</div>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div class="info reveal">
+      <span class="eyebrow">ติดต่อ</span>
+      <h2>ขอรับบริการ</h2>
+      <p class="lead" style="font-size:17px">เลือกประเภทบริการ กรอกรายละเอียดคร่าวๆ แล้วส่งให้เราทางอีเมลหรือโทรคุยได้เลย</p>
+      <ul>
+        <li>ปรึกษาเบื้องต้นไม่มีค่าใช้จ่าย</li>
+        <li>งานช่วยเหลือชุมชน ไม่คิดค่าบริการ</li>
+        <li>ข้อมูลของคุณใช้เพื่อติดต่อกลับเท่านั้น</li>
+      </ul>
+    </div>
+    <form class="formcard reveal" id="form" novalidate>
+      <fieldset>
+        <legend>ต้องการบริการแบบไหน</legend>
+        <button type="button" class="opt" data-type="student" aria-pressed="false"><b>ความรู้สำหรับนักศึกษา</b><span>ขอบทความ ไฟล์ตัวอย่าง หรือสมัครจิตอาสา</span></button>
+        <button type="button" class="opt" data-type="community" aria-pressed="false"><b>ขอความช่วยเหลือ โรงเรียน / วัด / ชุมชน</b><span>ตรวจอาคาร ซ่อมแซม ออกแบบอาคารเล็กๆ</span></button>
+        <button type="button" class="opt" data-type="design" aria-pressed="true"><b>ออกแบบ-เขียนแบบบ้าน</b><span>สำหรับบริษัท หรือผู้สนใจสร้างบ้าน</span></button>
+      </fieldset>
+      <div class="row">
+        <label>ชื่อ-นามสกุล / ชื่อหน่วยงาน<input type="text" id="f-name" placeholder="เช่น โรงเรียนบ้านหนองแสง" autocomplete="name"></label>
+        <label>เบอร์โทร หรือ LINE ID<input type="text" id="f-contact" placeholder="08x-xxx-xxxx" autocomplete="tel"></label>
+      </div>
+      <label>จังหวัด / ที่ตั้งของงาน<input type="text" id="f-place" placeholder="เช่น อ.เมือง จ.ขอนแก่น"></label>
+      <label>เล่าให้ฟังสั้นๆ ว่าต้องการอะไร<textarea id="f-detail" rows="5" placeholder="เช่น ศาลาวัดหลังคารั่ว / อยากสร้างบ้าน 2 ชั้น พื้นที่ดิน 100 ตร.ว."></textarea></label>
+      <button type="submit" class="btn btn-navy" style="min-height:52px">สร้างข้อความขอรับบริการ</button>
+      <div class="result" id="result" role="status">
+        <b id="resultTitle">ข้อความของคุณพร้อมแล้ว — เลือกวิธีส่ง</b>
+        <pre id="msg"></pre>
+        <div class="acts">
+          <a class="btn btn-navy" id="mailLink" href="#">ส่งทางอีเมล</a>
+          <button type="button" class="btn" id="copyBtn" style="border-color:var(--navy);color:var(--navy);background:#fff">คัดลอกข้อความ</button>
+        </div>
+        <p class="note">เว็บนี้ยังไม่ได้ส่งข้อความให้อัตโนมัติ กด "ส่งทางอีเมล" เพื่อเปิดแอปอีเมล หรือคัดลอกไปส่งทางโทรศัพท์ได้</p>
+      </div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><div class="brand">tonpayom</div><p>วิศวกรรมเพื่อการเรียนรู้ ชุมชน และบ้านของทุกคน</p></div>
+    <div class="col">
+      <b>ติดต่อ</b>
+      <span>โทร <a href="tel:0810310083">081 031 0083</a></span>
+      <span>LINE [LINE ID]</span>
+      <span>อีเมล <a href="mailto:tonpayom83@gmail.com">tonpayom83@gmail.com</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  document.body.classList.remove('no-js');
+
+  /* mobile menu */
+  var nav=document.getElementById('nav'), btn=document.getElementById('menuBtn');
+  btn.addEventListener('click',function(){
+    var open=nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded',open?'true':'false');
+  });
+  nav.addEventListener('click',function(e){ if(e.target.tagName==='A'){ nav.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }});
+
+  /* articles */
+  var ARTICLES=[
+    {tag:'นักศึกษา',level:'พื้นฐาน',title:'อ่านแบบโครงสร้างคาน-เสา-ฐานราก ให้เป็นใน 10 นาที',kind:'บทความ'},
+    {tag:'นักศึกษา',level:'พื้นฐาน',title:'ตั้งค่า Layer และ Template AutoCAD สำหรับเขียนแบบบ้าน',kind:'คลิปสอน'},
+    {tag:'นักศึกษา',level:'ปานกลาง',title:'คำนวณขนาดสายไฟและเบรกเกอร์ของบ้านพักอาศัย',kind:'บทความ + ตารางคำนวณ'},
+    {tag:'นักศึกษา',level:'เข้มข้น',title:'เตรียมสอบภาคีวิศวกร: สรุปสูตรและข้อสอบที่ออกบ่อย',kind:'ชุดข้อสอบ'},
+    {tag:'ชุมชน',level:'ทุกระดับ',title:'ตรวจอาคารเรียนเบื้องต้น 10 จุดที่ครูและนักเรียนเช็กเองได้',kind:'เช็กลิสต์'},
+    {tag:'ชุมชน',level:'ทุกระดับ',title:'ศาลาวัดหลังคารั่ว: สาเหตุที่พบบ่อยและวิธีซ่อมที่เหมาะกับงบจำกัด',kind:'คู่มือ'},
+    {tag:'ชุมชน',level:'ทุกระดับ',title:'ส้วมและบ่อเกรอะในชุมชนห่างไกล: ออกแบบอย่างไรให้ใช้ได้นาน',kind:'บทความ'},
+    {tag:'ชุมชน',level:'ทุกระดับ',title:'รอยร้าวผนังบ้านอันตรายไหม: แบบไหนซ่อมเอง แบบไหนต้องเรียกวิศวกร',kind:'บทความ'},
+    {tag:'สร้างบ้าน',level:'ทุกระดับ',title:'ก่อนสร้างบ้าน ต้องเตรียมอะไรบ้าง: ที่ดิน งบ และเอกสารขออนุญาต',kind:'เช็กลิสต์'},
+    {tag:'สร้างบ้าน',level:'ทุกระดับ',title:'แบบบ้านชุดหนึ่งมีอะไรบ้าง และอ่านแบบก่อนจ้างผู้รับเหมาอย่างไร',kind:'บทความ'},
+    {tag:'สร้างบ้าน',level:'ทุกระดับ',title:'บ้านชั้นเดียวหรือสองชั้น: เปรียบเทียบค่าก่อสร้างและการใช้งาน',kind:'บทความเปรียบเทียบ'},
+    {tag:'สร้างบ้าน',level:'ทุกระดับ',title:'ต่อเติมบ้านอย่างไรไม่ให้ร้าว: ฐานราก เสา และรอยต่อ',kind:'บทความ'}
+  ];
+  var TONE={'นักศึกษา':'#E7ECF3','ชุมชน':'#E3EFE8','สร้างบ้าน':'#FBE9DC'};
+  var CATS=['ทั้งหมด','นักศึกษา','ชุมชน','สร้างบ้าน'];
+  var cat='ทั้งหมด', term='';
+  var chips=document.getElementById('chips'), list=document.getElementById('articles'), q=document.getElementById('q');
+
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function drawChips(){
+    chips.innerHTML=CATS.map(function(c){
+      return '<button type="button" class="chip" data-cat="'+esc(c)+'" aria-pressed="'+(c===cat)+'">'+esc(c)+'</button>';
+    }).join('');
+  }
+  function drawList(){
+    var t=term.trim().toLowerCase();
+    var rows=ARTICLES.filter(function(a){
+      return (cat==='ทั้งหมด'||a.tag===cat) && (!t || (a.title+a.tag+a.kind).toLowerCase().indexOf(t)>-1);
+    });
+    if(!rows.length){ list.innerHTML='<p class="empty">ไม่พบบทความที่ตรงกับคำค้น ลองใช้คำอื่นหรือเปลี่ยนหมวด</p>'; return; }
+    list.innerHTML=rows.map(function(a){
+      return '<article class="article"><div class="thumb" style="background:'+TONE[a.tag]+'"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#14273F" stroke-width="1.5" aria-hidden="true"><path d="M3 21V3h18v18z"/><path d="M3 12h9V3"/><path d="M12 12v9"/></svg></div><div class="body"><span class="tag">'+esc(a.tag)+' · '+esc(a.level)+'</span><h3>'+esc(a.title)+'</h3><span class="kind">'+esc(a.kind)+'</span></div></article>';
+    }).join('');
+  }
+  chips.addEventListener('click',function(e){
+    var b=e.target.closest('.chip'); if(!b) return;
+    cat=b.getAttribute('data-cat');
+    [].forEach.call(chips.children,function(c){ c.setAttribute('aria-pressed',String(c===b)); });
+    drawList();
+  });
+  q.addEventListener('input',function(){ term=q.value; drawList(); });
+  drawChips(); drawList();
+
+  /* form */
+  var LABEL={student:'ความรู้สำหรับนักศึกษา',community:'ขอความช่วยเหลือ โรงเรียน / วัด / ชุมชน',design:'ออกแบบ-เขียนแบบบ้าน'};
+  var type='design';
+  var opts=[].slice.call(document.querySelectorAll('.opt'));
+  function setType(t){
+    type=t;
+    opts.forEach(function(o){ o.setAttribute('aria-pressed',o.getAttribute('data-type')===t?'true':'false'); });
+  }
+  opts.forEach(function(o){ o.addEventListener('click',function(){ setType(o.getAttribute('data-type')); }); });
+  [].slice.call(document.querySelectorAll('[data-pick]')).forEach(function(a){
+    a.addEventListener('click',function(){ setType(a.getAttribute('data-pick')); });
+  });
+
+  var form=document.getElementById('form'), result=document.getElementById('result'), msg=document.getElementById('msg');
+  var mail=document.getElementById('mailLink'), copy=document.getElementById('copyBtn');
+  var title=document.getElementById('resultTitle'), note=result.querySelector('.note');
+  var text='';
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var name=document.getElementById('f-name').value.trim();
+    var contact=document.getElementById('f-contact').value.trim();
+    var place=document.getElementById('f-place').value.trim();
+    var detail=document.getElementById('f-detail').value.trim();
+    if(!name||!contact){
+      (name?document.getElementById('f-contact'):document.getElementById('f-name')).focus();
+      title.textContent='ยังกรอกข้อมูลไม่ครบ';
+      msg.textContent='กรุณากรอกชื่อและเบอร์โทร/LINE ID เพื่อให้ติดต่อกลับได้';
+      result.classList.add('show','error'); mail.style.display='none'; copy.style.display='none'; note.style.display='none';
+      return;
+    }
+    title.textContent='ข้อความของคุณพร้อมแล้ว — เลือกวิธีส่ง';
+    result.classList.remove('error');
+    mail.style.display=''; copy.style.display=''; note.style.display='';
+    text='บริการที่ต้องการ: '+LABEL[type]+'\nชื่อ/หน่วยงาน: '+name+'\nติดต่อกลับ: '+contact+'\nที่ตั้งงาน: '+(place||'-')+'\nรายละเอียด: '+(detail||'-');
+    msg.textContent=text;
+    mail.href='mailto:tonpayom83@gmail.com?subject='+encodeURIComponent('ขอรับบริการ tonpayom — '+LABEL[type])+'&body='+encodeURIComponent(text);
+    result.classList.add('show');
+    result.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+  copy.addEventListener('click',function(){
+    var done=function(ok){ copy.textContent=ok?'คัดลอกแล้ว ✓':'คัดลอกไม่ได้ ลองเลือกข้อความแล้วคัดลอกเอง'; setTimeout(function(){copy.textContent='คัดลอกข้อความ';},2500); };
+    try{ navigator.clipboard.writeText(text).then(function(){done(true);},function(){done(false);}); }catch(err){ done(false); }
+  });
+
+  /* scroll reveal */
+  var items=[].slice.call(document.querySelectorAll('.reveal'));
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }});
+    },{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+    items.forEach(function(el,i){
+      el.style.setProperty('--d',((i%3)*90)+'ms');
+      io.observe(el);
+    });
+  } else { items.forEach(function(el){ el.classList.add('in'); }); }
+})();
+</script>
+</body>
+</html>
