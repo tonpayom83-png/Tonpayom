@@ -260,6 +260,15 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
 .s3-info{background:var(--mist);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.7;color:var(--body)}
 .s3-info b{color:var(--ink)}
 .s3-small{font-size:13px;color:var(--muted);line-height:1.6}
+.s3-cap{position:relative;height:16px;background:#fff;border:1px solid var(--field);border-radius:8px;margin:6px 0 2px}
+.s3-cap .f{position:absolute;left:0;top:0;bottom:0;background:var(--orange);border-radius:8px 0 0 8px}
+.s3-cap .f.warn{background:#D8321B}
+.s3-cap .f.bad{background:#7A1F0C}
+.s3-cap .k{position:absolute;top:-5px;width:3px;height:24px;background:var(--navy);border-radius:2px}
+.s3-cap .k.c{background:#7C93B0}
+.s3-cap .k.y{background:#D8A21B}
+.s3-cap .k.m{background:#B5451B}
+.s3-cap .k.u{background:#2F6B4F}
 .s3-load{padding:24px;text-align:center;color:var(--muted);background:var(--mist);border-radius:12px;font-size:14px}
 .prose table{width:100%;border-collapse:collapse;font-size:15px;margin:12px 0;display:block;overflow-x:auto}
 .prose th,.prose td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
@@ -752,7 +761,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     if(!s3Promise){
       s3Promise = loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js')
         .then(function(){ return loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js'); })
-        .then(function(){ return loadScript('sim3d.js?v=1'); })
+        .then(function(){ return loadScript('sim3d.js?v=7'); })
         .catch(function(e){ s3Promise = null; throw e; });
     }
     return s3Promise;
@@ -781,6 +790,9 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
       '<div class="cgrid">' + f('s-L','ช่วงคาน L','4','ม.') + f('s-wd','น้ำหนักคงที่ wD','1500','กก./ม.') + f('s-wl','น้ำหนักจร wL','600','กก./ม.') + '</div>' +
       '<div class="cgrid">' + f('s-b','กว้างคาน b','20','ซม.') + f('s-h','สูงคาน h','40','ซม.') + f('s-cov','ระยะหุ้ม','3','ซม.') + f('s-fc',"กำลังอัดคอนกรีต f'c",'240','ksc') + '</div>' +
       '<div class="cgrid"><label>เหล็กยืน<select id="s-bar">'+opt+'</select></label>' + f('s-fy','กำลังครากเหล็กยืน fy','4000','ksc') + '</div>' +
+      '<p class="cnote">อยากดูว่าคานพังเป็นอย่างไร ลองเลือกจำนวนเหล็กให้น้อยลง ใส่เหล็กมากเกินไป หรือไม่ใส่เหล็กปลอก แล้วดูโมเดล 3 มิติด้านล่าง</p>' +
+      '<div class="cgrid"><label>จำนวนเหล็กยืน<select id="s-nbar"><option value="0" selected>คำนวณให้อัตโนมัติ</option>' + [1,2,3,4,5,6,7,8,9,10].map(function(k){ return '<option value="'+k+'">'+k+' เส้น</option>'; }).join('') + '</select></label>' +
+        '<label>เหล็กปลอก RB6<select id="s-stir"><option value="auto" selected>คำนวณให้อัตโนมัติ</option>' + [10,15,20,25,30,40].map(function(k){ return '<option value="'+k+'">@ '+k+' ซม.</option>'; }).join('') + '<option value="none">ไม่ใส่เหล็กปลอก</option></select></label></div>' +
       '<div class="sim-out" id="s-out" aria-live="polite"></div>' +
       (with3d ? sim3dBlock('โมเดล 3 มิติของคานนี้', 'เหล็กยืน ระยะเหล็กปลอก และขนาดคานเปลี่ยนตามค่าที่กรอกด้านบน ลากเพื่อหมุน ลองเลื่อนแถบ "ตัดคานดูด้านใน" เพื่อดูเหล็กในหน้าตัด') : '') +
       '<svg id="s-svg" viewBox="0 0 560 270" role="img" aria-label="แผนภาพโมเมนต์ดัดและแรงเฉือน"></svg>' +
@@ -791,6 +803,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     var L=num($('s-L').value), wd=num($('s-wd').value), wl=num($('s-wl').value),
         b=num($('s-b').value), h=num($('s-h').value), cov=num($('s-cov').value),
         fc=num($('s-fc').value), fy=num($('s-fy').value), bar=SIM_BARS[+$('s-bar').value], db=bar[1];
+    var nSel=+$('s-nbar').value, stSel=$('s-stir').value;   // 0 / 'auto' = let the calculator choose
     if(!L||!b||!h||!fc||!fy){ out.innerHTML = '<div>กรอกค่าให้ครบเพื่อคำนวณ</div>'; svg.innerHTML=''; return; }
     var wu = 1.4*wd + 1.7*wl;                 // kg/m
     var mu = wu*L*L/8;                        // kg-m (max at midspan)
@@ -800,45 +813,64 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     var phi = 0.9, Rn = Mu/(phi*b*d*d);
     var disc = 1 - 2*Rn/(0.85*fc);
     var rhoMin = 14/fy, rb = 0.85*0.85*fc/fy*6120/(6120+fy), rhoMax = 0.75*rb;
-    var rows = [];
+    var area = Math.PI*db*db/4, rows = [], pass = true, issues = [];
     rows.push('<div><span>น้ำหนักประลัย Wu</span><b>'+fmt(wu)+' กก./ม.</b></div>');
     rows.push('<div><span>โมเมนต์ดัดสูงสุด Mu</span><b>'+fmt(mu,0)+' กก.-ม.</b></div>');
     rows.push('<div><span>แรงเฉือนที่จุดรองรับ Vu</span><b>'+fmt(vu,0)+' กก.</b></div>');
     rows.push('<div><span>ความลึกประสิทธิผล d</span><b>'+fmt(d,1)+' ซม.</b></div>');
-    if(disc <= 0 || d <= 0){
-      rows.push('<div class="no"><span>หน้าตัดเล็กเกินไปสำหรับโมเมนต์นี้</span><b>เพิ่มความสูงคานหรือความกว้าง</b></div>');
+    if(d <= 0){
+      rows.push('<div class="no"><span>คานเตี้ยเกินไป</span><b>เพิ่มความสูงคาน</b></div>');
       out.innerHTML = rows.join(''); svg.innerHTML = ''; return;
     }
-    var rho = (0.85*fc/fy)*(1 - Math.sqrt(disc));
-    var rhoUse = Math.max(rho, rhoMin);
-    var as = rhoUse*b*d, area = Math.PI*db*db/4, n = Math.ceil(as/area);
+    var tooSmall = disc <= 0;
+    var nAuto, rho;
+    if(tooSmall){
+      nAuto = Math.max(1, Math.floor(rhoMax*b*d/area));
+      rows.push('<div class="no"><span>หน้าตัดเล็กเกินไปสำหรับโมเมนต์นี้</span><b>คำนวณเหล็กไม่ได้ เพิ่มความสูงหรือความกว้างคาน</b></div>');
+      pass = false; issues.push('size');
+    } else {
+      rho = (0.85*fc/fy)*(1 - Math.sqrt(disc));
+      var asReq = Math.max(rho, rhoMin)*b*d;
+      nAuto = Math.ceil(asReq/area);
+      rows.push('<div><span>เหล็กที่ต้องการ As</span><b>'+fmt(asReq,2)+' ตร.ซม. → '+nAuto+'-'+bar[0]+'</b></div>');
+    }
+    var n = nSel > 0 ? nSel : nAuto;
+    if(nSel > 0) rows.push('<div><span>เหล็กยืนที่ใช้ (เลือกเอง)</span><b>'+n+'-'+bar[0]+' = '+fmt(n*area,2)+' ตร.ซม.</b></div>');
+    var rhoProv = n*area/(b*d);
+    if(rhoProv > rhoMax){
+      rows.push('<div class="no"><span>ใส่เหล็กมากเกินไป ρ = '+fmt(rhoProv,4)+' > '+fmt(rhoMax,4)+'</span><b>คอนกรีตจะแตกก่อนเหล็กคราก พังแบบฉับพลัน</b></div>'); pass = false; issues.push('over');
+    } else if(rhoProv < rhoMin){
+      rows.push('<div class="no"><span>เหล็กน้อยกว่าขั้นต่ำ ρ = '+fmt(rhoProv,4)+' < '+fmt(rhoMin,4)+'</span><b>เสี่ยงพังทันทีที่คอนกรีตแตกร้าว</b></div>'); pass = false; issues.push('min');
+    } else {
+      rows.push('<div class="ok"><span>ตรวจอัตราส่วนเหล็ก ρ</span><b>ผ่าน</b></div>');
+    }
     var clear = n > 1 ? (b - 2*cov - 2*dv - n*db)/(n-1) : b;
     var a = n*area*fy/(0.85*fc*b), phiMn = phi*n*area*fy*(d - a/2);
-    rows.push('<div><span>เหล็กที่ต้องการ As</span><b>'+fmt(as,2)+' ตร.ซม. → '+n+'-'+bar[0]+'</b></div>');
-    rows.push(rho > rhoMax
-      ? '<div class="no"><span>อัตราส่วนเหล็ก ρ เกินค่าสูงสุด</span><b>เพิ่มขนาดหน้าตัด</b></div>'
-      : '<div class="ok"><span>ตรวจอัตราส่วนเหล็ก ρ</span><b>ผ่าน</b></div>');
-    rows.push(phiMn >= Mu
-      ? '<div class="ok"><span>กำลังดัดหลังใส่เหล็ก φMn ≥ Mu</span><b>ผ่าน ('+fmt(phiMn/100,0)+' ≥ '+fmt(mu,0)+' กก.-ม.)</b></div>'
-      : '<div class="no"><span>กำลังดัดไม่พอ</span><b>เพิ่มเหล็กหรือขนาดคาน</b></div>');
+    if(phiMn >= Mu) rows.push('<div class="ok"><span>กำลังดัด φMn ≥ Mu</span><b>ผ่าน ('+fmt(phiMn/100,0)+' ≥ '+fmt(mu,0)+' กก.-ม.)</b></div>');
+    else { rows.push('<div class="no"><span>กำลังดัดไม่พอ φMn < Mu</span><b>'+fmt(phiMn/100,0)+' < '+fmt(mu,0)+' กก.-ม.</b></div>'); pass = false; issues.push('flex'); }
     rows.push(clear >= Math.max(2.5, db)
       ? '<div class="ok"><span>ระยะเหล็กยืนในแถว</span><b>ผ่าน (เว้นช่อง '+fmt(clear,1)+' ซม.)</b></div>'
       : '<div class="no"><span>เหล็กยืนแน่นเกินไปในแถวเดียว</span><b>เพิ่มความกว้างคาน</b></div>');
-    // shear at d from support, stirrups RB6 two legs
-    var vd = wu*(L/2 - d/100)*1;              // kg
+    // shear: critical section at d from support, stirrups RB6 two legs
+    var vd = wu*(L/2 - d/100);                // kg
     var Vc = 0.53*Math.sqrt(fc)*b*d;          // kg
     var Av = 2*Math.PI*0.36/4;                // cm² for two RB6 legs (d = 0.6 cm)
     var smax = Math.min(d/2, Av*2400/(3.5*b));
-    var s = smax;
-    if(vd > 0.85*Vc){
-      var vs = vd/0.85 - Vc;
-      s = Math.min(smax, Av*2400*d/Math.max(vs,1));
-    }
-    var sPrac = Math.max(5, Math.floor(s/5)*5);
-    rows.push('<div><span>เหล็กปลอก RB6 (2 ขา)</span><b>@ '+sPrac+' ซม. (ตามข้อจำกัด d/2 และขั้นต่ำ)</b></div>');
+    var sReq = smax;
+    if(vd > 0.85*Vc){ sReq = Math.min(smax, Av*2400*d/Math.max(vd/0.85 - Vc, 1)); }
+    var sAuto = Math.max(5, Math.floor(sReq/5)*5);
+    var sUse = stSel === 'auto' ? sAuto : stSel === 'none' ? 0 : +stSel;
+    var Vs = sUse > 0 ? Math.min(Av*2400*d/sUse, 2.1*Math.sqrt(fc)*b*d) : 0;
+    var phiVn = 0.85*(Vc + Vs);
+    rows.push('<div><span>เหล็กปลอก RB6 (2 ขา)</span><b>'+(sUse > 0 ? '@ '+sUse+' ซม.'+(stSel === 'auto' ? ' (คำนวณให้)' : ' (เลือกเอง)') : 'ไม่ใส่เหล็กปลอก')+'</b></div>');
+    if(phiVn >= vd) rows.push('<div class="ok"><span>กำลังเฉือน φVn ≥ Vu ที่ระยะ d</span><b>ผ่าน ('+fmt(phiVn,0)+' ≥ '+fmt(vd,0)+' กก.)</b></div>');
+    else { rows.push('<div class="no"><span>กำลังเฉือนไม่พอ φVn < Vu</span><b>'+fmt(phiVn,0)+' < '+fmt(vd,0)+' กก. เสี่ยงพังแบบฉับพลัน</b></div>'); pass = false; issues.push('shear'); }
+    rows.push(pass
+      ? '<div class="ok"><span><b>สรุปผลการตรวจ</b></span><b>ผ่านเกณฑ์ออกแบบ</b></div>'
+      : '<div class="no"><span><b>สรุปผลการตรวจ</b></span><b>ไม่ผ่านเกณฑ์ออกแบบ'+($('s3-box') ? ' — ดูในโมเดล 3 มิติว่าคานจะพังแบบไหน' : '')+'</b></div>');
     out.innerHTML = rows.join('');
     simDraw(svg, L, wu, mu, vu);
-    S3.last = { L: L, b: b, h: h, cov: cov, n: n, db: db, s: sPrac, wu: wu };
+    S3.last = { L: L, b: b, h: h, cov: cov, n: n, db: db, s: sUse, wu: wu, wd: wd, wl: wl, fc: fc, fy: fy, pass: pass, tooSmall: tooSmall, issues: issues };
     if(S3.model && S3.model.update) S3.model.update(S3.last);
   }
   function simDraw(svg, L, wu, mu, vu){

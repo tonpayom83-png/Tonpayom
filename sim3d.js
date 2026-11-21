@@ -85,10 +85,10 @@
   }
   function arrowDown(len, radius, color) {
     // Arrow whose tip is at y = 0 and tail at y = len.
-    var g = new T.Group(), head = Math.min(len * 0.4, radius * 4);
-    var shaft = new T.Mesh(new T.CylinderGeometry(radius, radius, Math.max(len - head, 0.01), 10), stdMat(color));
+    var g = new T.Group(), head = Math.min(len * 0.4, radius * 4), mat = color && color.isMaterial ? color : stdMat(color);
+    var shaft = new T.Mesh(new T.CylinderGeometry(radius, radius, Math.max(len - head, 0.01), 10), mat);
     shaft.position.y = head + (len - head) / 2;
-    var cone = new T.Mesh(new T.ConeGeometry(radius * 2.4, head, 14), stdMat(color));
+    var cone = new T.Mesh(new T.ConeGeometry(radius * 2.4, head, 14), mat);
     cone.rotation.x = Math.PI; cone.position.y = head / 2;
     g.add(shaft); g.add(cone);
     return g;
@@ -114,7 +114,7 @@
     this.scene.add(new T.HemisphereLight(0xffffff, 0xb9b4a6, 0.95));
     var d1 = new T.DirectionalLight(0xffffff, 0.75); d1.position.set(8, 14, 10); this.scene.add(d1);
     var d2 = new T.DirectionalLight(0xffffff, 0.25); d2.position.set(-8, 6, -10); this.scene.add(d2);
-    this.alive = true; this.tw = null; this.last = performance.now();
+    this.alive = true; this.tw = null; this.cbs = []; this.last = performance.now();
     this.resize = function () {
       var w = self.wrap.clientWidth || 600, h = self.wrap.clientHeight || 380;
       self.renderer.setSize(w, h, false);
@@ -135,6 +135,7 @@
         self.controls.target.lerpVectors(t.t0, t.t1, k);
         if (t.t >= 1) self.tw = null;
       }
+      for (var i = 0; i < self.cbs.length; i++) self.cbs[i](dt);
       self.controls.update();
       self.renderer.render(self.scene, self.camera);
     })(performance.now());
@@ -144,6 +145,7 @@
     if (instant) { this.camera.position.copy(p1); this.controls.target.copy(t1); this.controls.update(); this.tw = null; return; }
     this.tw = { t: 0, p0: this.camera.position.clone(), t0: this.controls.target.clone(), p1: p1, t1: t1 };
   };
+  Stage.prototype.onFrame = function (fn) { this.cbs.push(fn); };
   Stage.prototype.onPick = function (cb, getObjs) {
     var self = this, ray = new T.Raycaster(), v = new T.Vector2(), down = null, dom = this.renderer.domElement;
     dom.addEventListener('pointerdown', function (e) { down = [e.clientX, e.clientY]; });
@@ -375,90 +377,323 @@
   }
 
   /* =====================================================================
-   * Model 3: RC beam with main bars and stirrups. Driven by the 2D beam
-   * calculator: update({L,b,h,cov,n,db,s,wu}) is called on every change.
+   * Model 3: RC beam with main bars and stirrups, driven by the 2D beam
+   * calculator, and a load test: as the load grows the beam goes through
+   *   elastic -> flexural cracks -> steel yields -> failure
+   * and fails the way the section really would:
+   *   ductile   under-reinforced: steel yields, big sag, concrete crushes at the top
+   *   brittle   over-reinforced: concrete crushes first, little sag, no warning
+   *   minsteel  too little steel: snaps right after the first crack
+   *   shear     diagonal cracks near the support, sudden, the end drops
+   * update(p): p = {L,b,h,cov,n,db,s,wu,wd,wl,fc,fy,pass}  (m, cm, kg, ksc; s = 0 -> no stirrups)
+   * Simplified textbook behaviour for teaching (Branson Ie, strain compatibility), not a design tool.
    * ===================================================================== */
+  function analyzeBeam(p) {
+    var Lc = p.L * 100, b = p.b, h = p.h, db = p.db, fc = p.fc, fy = p.fy, dv = 0.6;
+    var d = h - p.cov - dv - db / 2, As = p.n * Math.PI * db * db / 4;
+    var beta1 = fc <= 280 ? 0.85 : Math.max(0.65, 0.85 - 0.05 * (fc - 280) / 70);
+    var Ec = 15100 * Math.sqrt(fc), Es = 2.04e6, nm = Es / Ec;
+    var Ig = b * h * h * h / 12, Mcr = 2 * Math.sqrt(fc) * Ig / (h / 2);
+    var kd = (-nm * As + Math.sqrt(nm * nm * As * As + 2 * b * nm * As * d)) / b;
+    var Icr = b * kd * kd * kd / 3 + nm * As * (d - kd) * (d - kd);
+    var ay = As * fy / (0.85 * fc * b), cy = ay / beta1;
+    var yieldsSteel = 0.003 * (d - cy) / cy >= fy / Es, Mn, My;
+    var rhoMaxB = 0.75 * 0.85 * beta1 * fc / fy * 6120 / (6120 + fy), ductile = yieldsSteel && As / (b * d) <= rhoMaxB;
+    if (yieldsSteel) {
+      Mn = As * fy * (d - ay / 2);
+      My = As * fy * (d - kd / 3);
+      if (My > Mn) My = Mn * 0.92;
+      if (!ductile) My = Mn;
+    } else {
+      var A = 0.85 * fc * beta1 * b, B = As * Es * 0.003, C = -As * Es * 0.003 * d;
+      var c = (-B + Math.sqrt(B * B - 4 * A * C)) / (2 * A);
+      Mn = 0.85 * fc * beta1 * c * b * (d - beta1 * c / 2);
+      My = Mn;
+    }
+    var Vc = 0.53 * Math.sqrt(fc) * b * d, Av = 2 * Math.PI * 0.36 / 4;
+    var Vs = p.s > 0 ? Math.min(Av * 2400 * d / p.s, 2.1 * Math.sqrt(fc) * b * d) : 0, Vn = Vc + Vs;
+    var Lm = p.L, crit = Lm / 2 - d / 100;
+    var toW = function (Mkgcm) { return 8 * (Mkgcm / 100) / (Lm * Lm); };          // kg/m that gives this midspan moment
+    var Mfail = Mn < Mcr ? Mcr : Mn;
+    var wFlex = toW(Mfail), wShear = crit > 0 ? Vn / crit : 1e9;
+    var mode = wShear < wFlex ? 'shear' : Mn < Mcr ? 'minsteel' : ductile ? 'ductile' : 'brittle';
+    return {
+      Lc: Lc, d: d, As: As, Ec: Ec, Ig: Ig, Icr: Icr, kd: kd, Mcr: Mcr, My: My, Mn: Mn, Mfail: Mfail, Vc: Vc, Vn: Vn, crit: crit,
+      mode: mode, ductile: ductile, wFail: Math.min(wFlex, wShear), wFlex: wFlex, wShear: wShear
+    };
+  }
+  function beamDelta(R, M) {            // mid-span deflection in cm for midspan moment M (kg-cm), Branson effective inertia
+    var Lc = R.Lc, w = 8 * M / (Lc * Lc), Ie = R.Ig;
+    if (M > R.Mcr) { var r = Math.pow(R.Mcr / M, 3); Ie = Math.min(R.Ig, r * R.Ig + (1 - r) * R.Icr); }
+    return 5 * w * Math.pow(Lc, 4) / (384 * R.Ec * Ie);
+  }
+
   function modelBeam(box) {
     var st = new Stage(box);
     var grp = new T.Group(); st.scene.add(grp);
-    var state = { glass: true, stirrups: true, cut: 100, labels: true }, last = null, first = true;
+    var crackGroup = new T.Group(); st.scene.add(crackGroup);
+    var crackGeo = new T.BoxGeometry(1, 1, 1);
+    var crackMat = new T.MeshBasicMaterial({ color: 0x2B1D17 });
     var plane = new T.Plane(new T.Vector3(-1, 0, 0), 1e6);
+    var S = { glass: true, stirrups: true, cut: 100, labels: true, lam: 1, fail: 0, failTarget: 0, play: null, exag: 3, lastInfo: 0 };
+    var P = null, R = null, M = null, first = true;
 
-    var bar = el('div', 's3-bar'), tog = el('div', 's3-bar'), ctl = el('div', 's3-ctl');
-    bar.appendChild(button('ทั้งคาน', function () { state.labels = true; if (last) { rebuild(last); st.view(wholeView(last)[0], wholeView(last)[1]); } }));
-    bar.appendChild(button('ดูหน้าตัดที่ปลายคาน', function () { if (last) { state.labels = false; rebuild(last); } if (last) st.view([-last.L / 2 - 1.1, 0.35, 0.9], [-last.L / 2 + 0.2, 0, 0]); }));
-    tog.appendChild(checkbox('คอนกรีตโปร่งใส', '#CFCBC2', true, function (on) { state.glass = on; if (last) rebuild(last); }));
-    tog.appendChild(checkbox('เหล็กปลอก', '#14273F', true, function (on) { state.stirrups = on; if (last) rebuild(last); }));
+    /* ----- UI ----- */
+    var bar = el('div', 's3-bar'), tog = el('div', 's3-bar'), ctl = el('div', 's3-ctl'), load = el('div', 's3-ctl'), act = el('div', 's3-bar');
+    var info = el('div', 's3-info');
+    bar.appendChild(button('ทั้งคาน', function () { S.labels = true; if (P) { rebuild(); view(0); } }));
+    bar.appendChild(button('มองด้านข้าง (ดูรอยร้าว)', function () { if (P) view(1); }));
+    bar.appendChild(button('ดูหน้าตัดที่ปลายคาน', function () { if (P) { S.labels = false; rebuild(); view(2); } }));
+    tog.appendChild(checkbox('คอนกรีตโปร่งใส', '#CFCBC2', true, function (on) { S.glass = on; if (P) rebuild(); }));
+    tog.appendChild(checkbox('เหล็กปลอก', '#14273F', true, function (on) { S.stirrups = on; if (P) rebuild(); }));
     var cutLab = el('label', null, 'ตัดคานดูด้านใน <span class="unit-in"><input type="range" min="2" max="100" step="1" value="100"><em>100%</em></span>');
-    ctl.appendChild(cutLab);
     var cutIn = cutLab.querySelector('input');
-    cutIn.addEventListener('input', function () { state.cut = +cutIn.value; cutLab.querySelector('em').textContent = state.cut + '%'; applyCut(); });
-    var legend = el('div', 's3-small', '<span style="color:#E8742A">■</span> เหล็กยืนล่าง (รับแรงดึง) &nbsp; <span style="color:#3A4556">■</span> เหล็กบน (ยึดเหล็กปลอก) &nbsp; <span style="color:#14273F">■</span> เหล็กปลอก (รับแรงเฉือน) &nbsp; ลากเพื่อหมุน ซูมด้วยล้อเมาส์');
-    box.appendChild(bar); box.appendChild(tog); box.appendChild(ctl); box.appendChild(legend);
+    cutIn.addEventListener('input', function () { S.cut = +cutIn.value; cutLab.querySelector('em').textContent = S.cut + '%'; applyCut(); });
+    var loadLab = el('label', null, 'น้ำหนักบรรทุกที่กระทำ <span class="unit-in"><input type="range" min="0" max="200" step="1" value="100"><em>100%</em></span>');
+    var loadIn = loadLab.querySelector('input'), loadEm = loadLab.querySelector('em');
+    loadIn.addEventListener('input', function () { stopPlay(); setLam(+loadIn.value / 100); syncSlider(); });
+    ctl.appendChild(cutLab); load.appendChild(loadLab);
+    act.appendChild(button('▶ เพิ่มน้ำหนักจนพัง', function () { startPlay(); }));
+    act.appendChild(button('ตั้งที่น้ำหนักออกแบบ (Wu)', function () { stopPlay(); if (P) setLam(P.wu / (P.wd + P.wl)); syncSlider(); }));
+    var legend = el('div', 's3-small', '<span style="color:#E8742A">■</span> เหล็กยืนล่าง (รับแรงดึง) · <span style="color:#D8321B">■</span> เหล็กที่ครากแล้ว · <span style="color:#3A4556">■</span> เหล็กบน · <span style="color:#14273F">■</span> เหล็กปลอก · เส้นดำบนคาน = รอยร้าว (ขยายการแอ่น ×' + S.exag + ' ให้เห็นชัด)');
+    [bar, tog, ctl, load, act, info, legend].forEach(function (e) { box.appendChild(e); });
 
-    function wholeView(p) { return [[p.L * 0.1, p.h / 100 / 2 + 0.5 + p.L * 0.09, p.L * 0.42 + 0.9], [0, -0.05, 0]]; }
-    function applyCut() {
-      if (!last) return;
-      plane.constant = state.cut >= 100 ? 1e6 : -last.L / 2 + last.L * state.cut / 100;
+    /* ----- view presets ----- */
+    function view(kind) {
+      var L = P.L, h = P.h / 100, k = Math.max(1, 1.7 / (st.camera.aspect || 1.6));
+      if (kind === 0) st.view([L * 0.1 * k, h / 2 + 0.5 + L * 0.09 * k, (L * 0.42 + 0.9) * k], [0, -0.05, 0]);
+      else if (kind === 1) st.view([0, 0.05, (L * 0.62 + 1.3) * k], [0, -0.1, 0]);
+      else st.view([-L / 2 - 1.1, 0.35, 0.9], [-L / 2 + 0.2, 0, 0]);
     }
-    function rebuild(p) {
-      disposeGroup(grp);
-      var L = p.L, b = p.b / 100, h = p.h / 100, cov = p.cov / 100, db = p.db / 100, n = p.n, s = Math.max(p.s / 100, 0.04), t = 0.006;
-      var clip = [plane];
-      var cm = new T.MeshStandardMaterial({ color: 0xBFBBB1, roughness: 0.9, transparent: true, opacity: state.glass ? 0.2 : 0.95, depthWrite: !state.glass, clippingPlanes: clip });
-      var conc = new T.Mesh(new T.BoxGeometry(L, h, b), cm); grp.add(conc);
-      var ed = new T.LineSegments(new T.EdgesGeometry(conc.geometry), new T.LineBasicMaterial({ color: 0x14273F, transparent: true, opacity: 0.5, clippingPlanes: clip })); grp.add(ed);
-      var steel = function (c, m) { return new T.MeshStandardMaterial({ color: c, roughness: 0.45, metalness: 0.35, clippingPlanes: clip }); };
-      // main bars (bottom)
+    function rebuild() { build(P); apply(); }
+    function applyCut() { if (P) plane.constant = S.cut >= 100 ? 1e6 : -P.L / 2 + P.L * S.cut / 100; }
+
+    /* ----- deformable geometry: store base positions, displace y by the deflection profile ----- */
+    var regs = [];
+    function register(geo, xoff) {
+      var pos = geo.attributes.position; regs.push({ g: geo, pos: pos, base: pos.array.slice(), xoff: xoff || 0 });
+    }
+    var prof = function () { return 0; };
+    function deformAll() {
+      var L = P.L;
+      regs.forEach(function (r) {
+        var a = r.pos.array, b = r.base;
+        for (var i = 0; i < a.length; i += 3) { a[i + 1] = b[i + 1] + prof(b[i] + r.xoff + L / 2); }
+        r.pos.needsUpdate = true;
+      });
+    }
+
+    /* ----- build the meshes for the current parameters ----- */
+    function build(p) {
+      disposeGroup(grp); regs = []; clearCracks();
+      P = p; R = analyzeBeam(p);
+      var L = p.L, b = p.b / 100, h = p.h / 100, cov = p.cov / 100, db = p.db / 100, n = p.n, t = 0.006, clip = [plane];
+      M = { stir: null, arrows: [] };
+      var cg = new T.BoxGeometry(L, h, b, 80, 1, 1);
+      var cm = new T.MeshStandardMaterial({ color: 0xBFBBB1, roughness: 0.9, transparent: true, opacity: S.glass ? 0.2 : 0.95, depthWrite: !S.glass, clippingPlanes: clip });
+      var conc = new T.Mesh(cg, cm); conc.frustumCulled = false; grp.add(conc); register(cg);
+      var eg = new T.EdgesGeometry(cg);
+      var ed = new T.LineSegments(eg, new T.LineBasicMaterial({ color: 0x14273F, transparent: true, opacity: 0.5, clippingPlanes: clip })); ed.frustumCulled = false; grp.add(ed); register(eg);
+      var steel = function (c) { return new T.MeshStandardMaterial({ color: c, roughness: 0.45, metalness: 0.35, clippingPlanes: clip }); };
+      var barGeo = function (r, len) { var g = new T.CylinderGeometry(r, r, len, 10, 80); g.rotateZ(Math.PI / 2); return g; };
+      M.barMat = steel(0xE8742A);
       var w = Math.max(b - 2 * cov - 2 * t - db, 0), yb = -h / 2 + cov + t + db / 2;
       for (var i = 0; i < n; i++) {
-        var z = n === 1 ? 0 : -w / 2 + i * w / (n - 1);
-        var bm = new T.Mesh(new T.CylinderGeometry(db / 2, db / 2, L - 2 * cov, 14), steel(0xE8742A));
-        bm.rotation.z = Math.PI / 2; bm.position.set(0, yb, z); grp.add(bm);
+        var g1 = barGeo(db / 2, L - 2 * cov), bm = new T.Mesh(g1, M.barMat); bm.frustumCulled = false;
+        bm.position.set(0, yb, n === 1 ? 0 : -w / 2 + i * w / (n - 1)); grp.add(bm); register(g1);
       }
-      // top hanger bars 2-DB12
-      var rt = 0.006, yt = h / 2 - cov - t - rt, zt = b / 2 - cov - t - rt;
+      var rt = 0.006, yt = h / 2 - cov - t - rt, zt = b / 2 - cov - t - rt, topMat = steel(0x3A4556);
       [-zt, zt].forEach(function (z) {
-        var tb = new T.Mesh(new T.CylinderGeometry(rt, rt, L - 2 * cov, 10), steel(0x3A4556));
-        tb.rotation.z = Math.PI / 2; tb.position.set(0, yt, z); grp.add(tb);
+        var g2 = barGeo(rt, L - 2 * cov), tb = new T.Mesh(g2, topMat); tb.frustumCulled = false;
+        tb.position.set(0, yt, z); grp.add(tb); register(g2);
       });
-      // stirrups: 4 instanced sides
-      if (state.stirrups) {
-        var x0 = -L / 2 + 0.05, cnt = Math.min(400, Math.floor((L - 0.1) / s) + 1), bw = b - 2 * cov, bh = h - 2 * cov;
-        var sides = [[t, t, bw, 0, -bh / 2, 0], [t, t, bw, 0, bh / 2, 0], [t, bh, t, 0, 0, -bw / 2], [t, bh, t, 0, 0, bw / 2]];
-        var dummy = new T.Object3D();
-        sides.forEach(function (sd) {
-          var im = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), steel(0x14273F), cnt);
-          for (var k = 0; k < cnt; k++) {
-            dummy.position.set(x0 + k * s, sd[4], sd[5]); dummy.scale.set(sd[0], sd[1], sd[2]); dummy.updateMatrix(); im.setMatrixAt(k, dummy.matrix);
-          }
-          im.instanceMatrix.needsUpdate = true; grp.add(im);
-        });
+      if (S.stirrups && p.s > 0) {
+        var s = Math.max(p.s / 100, 0.04), x0 = -L / 2 + 0.05, cnt = Math.min(400, Math.floor((L - 0.1) / s) + 1), bw = b - 2 * cov, bh = h - 2 * cov;
+        var sides = [[t, t, bw, -bh / 2, 0], [t, t, bw, bh / 2, 0], [t, bh, t, 0, -bw / 2], [t, bh, t, 0, bw / 2]];
+        M.stir = { cnt: cnt, s: s, x0: x0, sides: sides, meshes: sides.map(function () {
+          var im = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), steel(0x14273F), cnt); im.frustumCulled = false; grp.add(im); return im;
+        }) };
       }
-      // supports
       [-L / 2, L / 2].forEach(function (x) {
         var sup = new T.Mesh(new T.ConeGeometry(0.22, 0.3, 4), stdMat(0x7C93B0)); sup.rotation.y = Math.PI / 4;
         sup.position.set(x, -h / 2 - 0.15, 0); grp.add(sup);
       });
-      // uniform load arrows and labels
+      M.arrowMat = stdMat(0xE8742A);
       var na = Math.max(5, Math.round(L * 2.5));
       for (var a = 0; a < na; a++) {
-        var arr = arrowDown(0.3, 0.01, 0xE8742A);
+        var arr = arrowDown(0.3, 0.01, M.arrowMat);
         arr.position.set(-L / 2 + 0.1 + a * (L - 0.2) / (na - 1), h / 2 + 0.34, 0); grp.add(arr);
       }
-      var ll = label('Wu = ' + fmt(p.wu) + ' กก./ม.', { color: '#fff', bg: '#A84A14', width: 1.5 }); ll.position.set(0, h / 2 + 0.58, 0); ll.visible = state.labels; grp.add(ll);
-      var dl = label('L = ' + fmt(L, 2) + ' ม.   ' + fmt(p.b) + ' × ' + fmt(p.h) + ' ซม.', { color: '#14273F', bg: 'rgba(255,255,255,.9)', width: 2.2 }); dl.position.set(0, -h / 2 - 0.62, 0); dl.visible = state.labels; grp.add(dl);
-      var rl = label('เหล็กยืน ' + n + '-DB' + Math.round(p.db * 10) + '   ปลอก RB6@' + fmt(p.s) + ' ซม.', { color: '#fff', bg: '#14273F', width: 3.0 }); rl.position.set(0, -h / 2 - 0.95, 0); rl.visible = state.labels; grp.add(rl);
+      M.patch = new T.Mesh(new T.BoxGeometry(1, 1, 1), new T.MeshBasicMaterial({ color: 0xB5451B, transparent: true, opacity: 0.9 }));
+      M.patch.visible = false; grp.add(M.patch);
+      var lab = function (txt, o, y) { var sp = label(txt, o); sp.position.set(0, y, 0); sp.visible = S.labels; grp.add(sp); };
+      lab('Wu = ' + fmt(p.wu) + ' กก./ม.', { color: '#fff', bg: '#A84A14', width: 1.5 }, h / 2 + 0.58);
+      lab('L = ' + fmt(L, 2) + ' ม.   ' + fmt(p.b) + ' × ' + fmt(p.h) + ' ซม.', { color: '#14273F', bg: 'rgba(255,255,255,.9)', width: 2.2 }, -h / 2 - 0.62);
+      lab('เหล็กยืน ' + n + '-DB' + Math.round(p.db * 10) + '   ' + (p.s > 0 ? 'ปลอก RB6@' + fmt(p.s) + ' ซม.' : 'ไม่มีเหล็กปลอก'), { color: '#fff', bg: '#14273F', width: 3.0 }, -h / 2 - 0.95);
       applyCut();
-      if (first) { var v = wholeView(p); st.view(v[0], v[1], true); first = false; }
+      // slider range: up to a bit over the failure load
+      var wServ = p.wd + p.wl, lamU = p.wu / wServ, lamF = R.wFail / wServ;
+      loadIn.max = Math.ceil(Math.max(lamU * 1.25, lamF * 1.2, 1.5) * 100);
+      if (first) { view(0); first = false; }
     }
+
+    /* ----- state at the current load ----- */
+    function setLam(l) {
+      S.lam = Math.max(0, l);
+      if (!P) return;
+      var failedNow = S.lam * (P.wd + P.wl) >= R.wFail;
+      if (failedNow) S.failTarget = 1; else { S.failTarget = 0; S.fail = 0; }
+      apply(true);
+    }
+    function syncSlider() { loadIn.value = Math.round(S.lam * 100); loadEm.textContent = Math.round(S.lam * 100) + '%'; }
+    function startPlay() {
+      if (!P) return;
+      var wServ = P.wd + P.wl;
+      S.play = { t: 0, to: R.wFail / wServ * 1.03, dur: 8 };
+      S.fail = 0; S.failTarget = 0; setLam(0);
+      loadIn.max = Math.max(+loadIn.max, Math.ceil(S.play.to * 100));
+    }
+    function stopPlay() { S.play = null; }
+
+    function clearCracks() { while (crackGroup.children.length) crackGroup.remove(crackGroup.children[0]); }
+    function addCrack(x, y, z, sx, sy, sz, rotZ) {
+      var m = new T.Mesh(crackGeo, crackMat); m.position.set(x, y, z); m.scale.set(sx, sy, sz); if (rotZ) m.rotation.z = rotZ; crackGroup.add(m);
+    }
+
+    function apply(force) {
+      if (!P || !R) return;
+      var L = P.L, h = P.h / 100, b = P.b / 100, wServ = P.wd + P.wl, w = S.lam * wServ;
+      var failedNow = w >= R.wFail, f = failedNow ? S.fail : 0;
+      var wEff = Math.min(w, R.wFail), Meff = wEff * L * L / 8 * 100;                 // kg-cm (clamped at failure)
+      var yielded = R.ductile && R.mode !== 'minsteel' && Meff >= R.My;
+      var stage = failedNow ? 'fail' : yielded ? 'yield' : Meff >= R.Mcr ? 'crack' : 'elastic';
+      var mid = beamDelta(R, Meff), beta = 0;
+      if (yielded && R.mode !== 'minsteel') {
+        var dy = beamDelta(R, R.My), du = Math.max(0.045 * R.Lc, dy * 2.5);
+        beta = Math.min(1, (Meff - R.My) / Math.max(R.Mfail - R.My, 1));
+        mid = dy + (du - dy) * Math.pow(beta, 0.75);
+      }
+      var visMid = S.exag * mid / 100;
+      prof = function (xm) {
+        var xi = Math.min(1, Math.max(0, xm / L)), el = 3.2 * (xi - 2 * xi * xi * xi + xi * xi * xi * xi), tri = 1 - Math.abs(2 * xi - 1);
+        var y = visMid * ((1 - beta) * el + beta * tri);
+        if (f > 0) {
+          if (R.mode === 'shear') y += f * 0.1 * L * (1 - xi);                       // the cracked end drops
+          else { var fm = (R.mode === 'ductile' ? 0.18 : 0.16) * L, e = f * f * (3 - 2 * f); y = y * (1 - e) + fm * tri * e; }
+        }
+        return -y;
+      };
+      deformAll();
+      // stirrups follow the sag
+      if (M.stir) {
+        var dummy = new T.Object3D();
+        M.stir.meshes.forEach(function (im, si) {
+          var sd = M.stir.sides[si];
+          for (var k = 0; k < M.stir.cnt; k++) {
+            var x = M.stir.x0 + k * M.stir.s;
+            dummy.position.set(x, sd[3] + prof(x + L / 2), sd[4]); dummy.scale.set(sd[0], sd[1], sd[2]); dummy.updateMatrix(); im.setMatrixAt(k, dummy.matrix);
+          }
+          im.instanceMatrix.needsUpdate = true;
+        });
+      }
+      M.barMat.color.setHex(yielded || (failedNow && R.mode === 'minsteel') ? 0xD8321B : 0xE8742A);
+      M.arrowMat.color.setHex(failedNow ? 0xB5451B : 0xE8742A);
+      // ----- cracks -----
+      clearCracks();
+      var zf = b / 2 + 0.0015, sp = Math.max(0.1, Math.min(0.2, P.s > 0 ? P.s / 100 : 0.15));
+      if (Meff >= R.Mcr) {
+        var ratio = R.Mcr / Meff, xi1 = (1 - Math.sqrt(Math.max(0, 1 - ratio))) / 2, span = L - 2 * xi1 * L;
+        var cnt = Math.min(40, Math.floor(span / sp) + 1);
+        for (var k = 0; k < cnt; k++) {
+          var xm = L / 2 + (k - (cnt - 1) / 2) * sp, xi = xm / L, mloc = 4 * xi * (1 - xi) * Meff;
+          var q = Math.min(1.2, Math.max(0, (mloc - R.Mcr) / Math.max(R.Mfail - R.Mcr, 1)));
+          var hf = Math.min(0.9, 0.25 + 0.65 * q), ch = hf * h, cw = (0.0015 + 0.011 * q) * (yielded ? 1.3 : 1) * (1 + 0.5 * f);
+          var y = -h / 2 + ch / 2 + prof(xm);
+          addCrack(xm - L / 2, y, zf, cw, ch, 0.003); addCrack(xm - L / 2, y, -zf, cw, ch, 0.003);
+        }
+      }
+      var Vd = wEff * R.crit, nu = Vd / R.Vc;
+      if (nu >= 0.8 && R.crit > 0) {
+        var width = 0.002 + 0.016 * Math.min(1.3, Math.max(0, (nu - 0.8) / Math.max(R.Vn / R.Vc - 0.8, 0.05))), hc = h * 0.85;
+        [-1, 1].forEach(function (sg) {
+          var wide = (R.mode === 'shear' && sg === -1) ? 1 + f * 2.5 : 1;
+          [0, 0.22].forEach(function (off) {
+            var a0 = 0.12 + off, xm = sg === -1 ? a0 + hc / 2 : L - a0 - hc / 2, y = -h / 2 + hc / 2 + prof(xm);
+            addCrack(xm - L / 2, y, zf, width * wide, hc * 1.414, 0.003, sg === -1 ? Math.PI / 4 : -Math.PI / 4);
+            addCrack(xm - L / 2, y, -zf, width * wide, hc * 1.414, 0.003, sg === -1 ? Math.PI / 4 : -Math.PI / 4);
+          });
+        });
+      }
+      // crushing of the top concrete at midspan
+      var crush = R.mode !== 'shear' && (failedNow || Meff >= 0.93 * R.Mfail);
+      M.patch.visible = crush;
+      if (crush) {
+        var g = failedNow ? 0.5 + 0.5 * f : 0.25;
+        M.patch.scale.set(0.3 + 0.35 * g, 0.12 * h + 0.2 * h * g, b * 1.02); M.patch.position.set(0, h / 2 - M.patch.scale.y / 2, 0);
+        M.patch.position.y += prof(L / 2);
+      }
+      // ----- readout (throttled) -----
+      var now = performance.now();
+      if (force || now - S.lastInfo > 90 || stage !== S.stage) { S.lastInfo = now; S.stage = stage; renderInfo(stage, w, Meff, mid, f); }
+    }
+
+    var MODE_TXT = {
+      ductile: 'วิบัติจากแรงดัดแบบเหนียว: เหล็กยืนครากต่อเนื่อง คานแอ่นมากและรอยร้าวกว้างจนส่วนบนของคอนกรีตถูกบดแตก (จุดแดงบนคาน) แล้วพังลง ก่อนพังจะมีสัญญาณเตือนให้เห็น',
+      brittle: 'วิบัติจากแรงดัดแบบเปราะ: ใส่เหล็กมากเกินไป คอนกรีตส่วนบนถูกบดแตกก่อนที่เหล็กจะคราก คานแอ่นน้อยและพังฉับพลันโดยแทบไม่มีสัญญาณเตือน อันตรายกว่าแบบเหนียว',
+      minsteel: 'เหล็กน้อยเกินไป: พอคอนกรีตเริ่มแตกร้าว เหล็กรับแรงแทนไม่ไหวและครากทันที คานพังฉับพลัน',
+      shear: 'วิบัติจากแรงเฉือน: เกิดรอยร้าวเฉียงประมาณ 45° ใกล้จุดรองรับแล้วแยกออกทันที ปลายคานตกลง เป็นการพังแบบเปราะและอันตรายมาก เพราะเหล็กปลอกไม่พอ'
+    };
+    var ISSUE = { size: 'หน้าตัดเล็กเกินไป', over: 'ใส่เหล็กมากเกินไป (ถ้าพังจะพังฉับพลันแบบเปราะ)', min: 'เหล็กน้อยกว่าขั้นต่ำ (จะพังฉับพลันทันทีที่คอนกรีตแตกร้าว)', flex: 'กำลังดัดไม่พอ', shear: 'เหล็กปลอกไม่พอรับแรงเฉือน (ถ้าพังจะพังฉับพลันที่ปลายคาน)' };
+    function why() { var t = (P.issues || []).map(function (k) { return ISSUE[k]; }).filter(Boolean); return t.length ? t.join(' และ ') : 'ผลตรวจบางข้อไม่ผ่านตามเกณฑ์ที่กำหนด'; }
+    function stageText(stage, f) {
+      if (stage === 'elastic') return 'ยังไม่แตกร้าว: คอนกรีตรับแรงดึงเองได้ คานแอ่นน้อยมาก';
+      if (stage === 'crack') return 'เริ่มแตกร้าวที่ท้องคานกลางช่วง: คอนกรีตส่วนล่างรับแรงดึงไม่ไหว เหล็กยืนเริ่มรับแรงแทน รอยร้าวเส้นเล็กเป็นเรื่องปกติของคอนกรีตเสริมเหล็ก';
+      if (stage === 'yield') return 'เหล็กยืนครากแล้ว (เหล็กเปลี่ยนเป็นสีแดง): คานแอ่นเพิ่มเร็วขึ้นและรอยร้าวกว้างขึ้น นี่คือสัญญาณเตือนก่อนพัง ถ้าเห็นของจริงต้องรีบลดน้ำหนักและอพยพ';
+      return (f < 0.4 ? 'กำลังพัง… ' : '') + MODE_TXT[R.mode];
+    }
+    function renderInfo(stage, w, Meff, mid, f) {
+      var L = P.L, wServ = P.wd + P.wl, scale = Math.max(R.Mfail / 100 * 1.2, w * L * L / 8);
+      var pos = function (Mkgm) { return Math.min(100, Mkgm / scale * 100); };
+      var Mu = P.wu * L * L / 8, k = function (Mkgm, cls, t) { return '<i class="k ' + cls + '" style="left:' + pos(Mkgm) + '%" title="' + t + '"></i>'; };
+      var bar = '<div class="s3-cap"><i class="f ' + (stage === 'fail' ? 'bad' : stage === 'yield' ? 'warn' : '') + '" style="width:' + pos(Math.min(w * L * L / 8, scale)) + '%"></i>' +
+        k(R.Mcr / 100, 'c', 'แตกร้าว') + (R.ductile ? k(R.My / 100, 'y', 'เหล็กคราก') : '') + k(R.Mfail / 100, 'm', 'พัง') + k(Mu, 'u', 'Mu ออกแบบ') + '</div>' +
+        '<div class="s3-small">โมเมนต์กลางช่วง: เส้นเริ่มแตกร้าว ' + fmt(R.Mcr / 100) + (R.ductile ? ' · เหล็กคราก ' + fmt(R.My / 100) : '') + ' · พัง ' + fmt(R.Mfail / 100) + ' · Mu ออกแบบ ' + fmt(Mu) + ' กก.-ม.</div>';
+      var Mapp = w * L * L / 8, head = stage === 'fail' ? '<b style="color:#B5451B">พังแล้ว</b>' : '<b>' + { elastic: 'ปกติ', crack: 'แตกร้าว', yield: 'เหล็กครากแล้ว' }[stage] + '</b>';
+      var reserve = R.wFail / P.wu;
+      var verdict = reserve < 1
+        ? 'ที่น้ำหนักออกแบบ Wu = ' + fmt(P.wu) + ' กก./ม. คานนี้<b>รับไม่ไหว</b> (กำลังจริงรับได้ ' + fmt(R.wFail) + ' กก./ม. = ' + fmt(reserve * 100) + '% ของ Wu)'
+        : 'ที่น้ำหนักออกแบบ Wu = ' + fmt(P.wu) + ' กก./ม. คานนี้ยังไม่พัง พังเมื่อน้ำหนักถึง ' + fmt(R.wFail) + ' กก./ม. (เหลือกำลังสำรอง ' + fmt((reserve - 1) * 100) + '% จากน้ำหนักออกแบบ)' + (P.pass ? '' : ' แต่<b>ไม่ผ่านเกณฑ์ออกแบบ</b> เพราะ' + why() + ' กด "เพิ่มน้ำหนักจนพัง" เพื่อดูว่าจะพังแบบไหน');
+      info.innerHTML = bar + '<div>' + head + ' · น้ำหนักที่กระทำ ' + fmt(w) + ' กก./ม. (' + fmt(w / wServ * 100) + '% ของ wD+wL) · โมเมนต์ ' + fmt(Mapp) + ' กก.-ม.</div>' +
+        '<div>' + stageText(stage, f) + '</div>' +
+        (stage === 'fail' ? '' : '<div class="s3-small">การแอ่นตัวจริงประมาณ ' + fmt(mid, 1) + ' ซม. (ในโมเดลขยาย ×' + S.exag + ')</div>') +
+        '<div>' + verdict + '</div>';
+    }
+
+    /* ----- per-frame: play button and collapse animation ----- */
+    st.onFrame(function (dt) {
+      if (!P) return;
+      var dirty = false;
+      if (S.play) {
+        S.play.t += dt; var u = Math.min(1, S.play.t / S.play.dur);
+        S.lam = S.play.to * u; syncSlider();
+        if (S.lam * (P.wd + P.wl) >= R.wFail) S.failTarget = 1;
+        if (u >= 1) S.play = null;
+        dirty = true;
+      }
+      if (S.fail < S.failTarget) { S.fail = Math.min(S.failTarget, S.fail + dt / 0.8); dirty = true; }
+      if (dirty) apply();
+    });
     st.camera.position.set(1, 1.6, 3.5);
+
     return {
       update: function (p) {
-        if (!p || !(p.L > 0 && p.b > 0 && p.h > 0 && p.n > 0 && p.db > 0 && p.s > 0)) return;
-        last = p; rebuild(p);
+        if (!p || !(p.L > 0 && p.b > 0 && p.h > 0 && p.n > 0 && p.db > 0 && p.fc > 0 && p.fy > 0)) return;
+        stopPlay(); var Lprev = S.lastL; build(p); S.lastL = p.L;
+        if (Lprev && Math.abs(p.L - Lprev) / Lprev > 0.15) view(0);
+        S.lam = p.wu / (p.wd + p.wl); S.fail = 0; S.failTarget = 0; syncSlider();
+        setLam(S.lam);
       },
-      dispose: function () { st.dispose(); }
+      dispose: function () { crackGeo.dispose(); crackMat.dispose(); st.dispose(); }
     };
   }
 
