@@ -16,6 +16,18 @@ public_folder: /images/uploads
 site_url: https://tonpayom83-png.github.io/Tonpayom/
 display_url: https://tonpayom83-png.github.io/Tonpayom/
 
+# Photos are resized to max 1920px and converted to WebP on upload, so phone photos stay small.
+media_libraries:
+  default:
+    config:
+      max_file_size: 20000000
+      transformations:
+        raster_image:
+          format: webp
+          quality: 82
+          width: 1920
+          height: 1920
+
 collections:
   - name: site
     label: เนื้อหาเว็บ
@@ -80,6 +92,7 @@ collections:
               - { name: title, label: หัวข้อ, widget: string }
               - { name: text, label: ข้อความ, widget: text, required: false }
               - { name: link_text, label: ข้อความลิงก์, widget: string, required: false }
+              - { name: image, label: รูป (ถ้าใส่จะแทนไอคอน), widget: image, required: false }
               - name: target
                 label: กดแล้วไปที่ส่วน
                 widget: select
@@ -125,6 +138,11 @@ collections:
                   - { name: video, label: ลิงก์ YouTube, widget: string, required: false, hint: "วางลิงก์ เช่น https://youtu.be/xxxx หรือ https://www.youtube.com/watch?v=xxxx" }
                   - { name: file, label: "ไฟล์ให้ดาวน์โหลด (PDF, Excel, DWG ฯลฯ)", widget: file, required: false }
                   - { name: body, label: เนื้อหา, widget: markdown, required: false, hint: "ถ้าไม่มีเนื้อหา รูป คลิป หรือไฟล์ การ์ดจะขึ้นว่า 'กำลังจะมาเร็วๆ นี้'" }
+                  - name: gallery
+                    label: รูปเพิ่มเติม (แสดงท้ายบทความ)
+                    widget: list
+                    required: false
+                    field: { name: image, label: รูป, widget: image }
 
           # ---------------- ชุมชน ----------------
           - name: community
@@ -135,6 +153,7 @@ collections:
               - { name: title, label: หัวข้อ (กด Enter เพื่อขึ้นบรรทัดใหม่), widget: text }
               - { name: text, label: ข้อความ, widget: text, required: false }
               - { name: button, label: ข้อความปุ่ม, widget: string, required: false }
+              - { name: image, label: รูปใต้ปุ่ม, widget: image, required: false }
               - name: groups
                 label: กล่องกลุ่มที่ช่วยเหลือ
                 widget: list
@@ -143,6 +162,7 @@ collections:
                 fields:
                   - { name: title, label: หัวข้อ, widget: string }
                   - { name: text, label: ข้อความ, widget: text }
+                  - { name: image, label: รูป, widget: image, required: false }
 
           # ---------------- ออกแบบ ----------------
           - name: design
@@ -152,6 +172,7 @@ collections:
               - { name: eyebrow, label: ป้ายหัวข้อ, widget: string, required: false }
               - { name: title, label: หัวข้อ, widget: string }
               - { name: lead, label: ข้อความใต้หัวข้อ, widget: text, required: false }
+              - { name: image, label: รูปใหญ่ใต้ข้อความ, widget: image, required: false }
               - name: steps
                 label: ขั้นตอนการทำงาน
                 widget: list
