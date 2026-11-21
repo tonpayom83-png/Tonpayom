@@ -203,6 +203,14 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
 .prose img{border-radius:10px;margin:12px 0}
 .prose a{color:var(--orange-text)}
 .prose > :first-child{margin-top:0}
+.prose table{width:100%;border-collapse:collapse;font-size:15px;margin:12px 0;display:block;overflow-x:auto}
+.prose th,.prose td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+.prose th{background:var(--mist);color:var(--ink);font-weight:600}
+.prose pre{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font-size:14px;line-height:1.7;color:var(--ink)}
+.prose code{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:.92em}
+.prose :not(pre) > code{background:var(--mist);padding:1px 6px;border-radius:5px;color:var(--ink)}
+.prose blockquote{margin:20px 0 0;padding:14px 18px;background:var(--peach);border-radius:10px;font-size:15px;color:var(--ink)}
+.prose blockquote p{margin:0}
 
 /* loading / error */
 .loading{min-height:60vh;display:flex;align-items:center;justify-content:center;color:var(--muted)}
