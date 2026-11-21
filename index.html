@@ -7,7 +7,16 @@
 <meta name="description" content="แหล่งเรียนรู้งานวิศวกรรมสำหรับนักศึกษา งานจิตอาสาช่วยโรงเรียน วัด ชาวบ้าน และบริการออกแบบ-เขียนแบบบ้าน">
 <meta property="og:type" content="website">
 <meta property="og:title" content="tonpayom — วิศวกรรมเพื่อการเรียนรู้ ชุมชน และบ้านของทุกคน">
-<meta property="og:description" content="แหล่งเรียนรู้งานวิศวกรรมสำหรับนักศึกษา งานจิตอาสาช่วยโรงเรียน วัด ชาวบ้าน และบริการออกแบบ-เขียนแบบบ้าน">
+<meta property="og:description" content="รับออกแบบ-เขียนแบบบ้าน งานต่อเติม และคลังความรู้วิศวกรรมโยธา ปรึกษาฟรี ช่วยเหลือโรงเรียน วัด และชุมชน">
+<!-- Link previews (LINE, Facebook) read these tags without running JS, so they stay static. -->
+<meta property="og:url" content="https://tonpayom83-png.github.io/Tonpayom/">
+<meta property="og:site_name" content="tonpayom">
+<meta property="og:locale" content="th_TH">
+<meta property="og:image" content="https://tonpayom83-png.github.io/Tonpayom/images/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="brand/tonpayom-profile.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36' fill='none' stroke='%2314273F' stroke-width='2.4'%3E%3Crect x='2' y='2' width='32' height='32' rx='6' fill='%23F6F4EF'/%3E%3Cpath d='M8 26 L18 9 L28 26 Z M18 9 V26 M12 20 H24'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -350,12 +359,12 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
 
     if(seo.title) document.title = seo.title;
     setMeta('description', seo.description); setMeta('og:title', seo.title, true); setMeta('og:description', seo.description, true);
-    if(seo.share_image) setMeta('og:image', new URL(src(seo.share_image), location.href).href, true);
 
     $('logo').innerHTML = (brand.logo ? '<img src="'+esc(src(brand.logo))+'" alt="">' : LOGO_SVG) + esc(brand.name || '');
     $('logo').setAttribute('aria-label', (brand.name || '') + ' หน้าแรก');
+    var items = arr(pf.items);
     var navKeys = ['knowledge','community','design','portfolio','contact'];
-    $('nav').innerHTML = navKeys.filter(function(k){ return nav[k]; }).map(function(k){ return '<a href="#'+k+'">'+esc(nav[k])+'</a>'; }).join('');
+    $('nav').innerHTML = navKeys.filter(function(k){ return nav[k] && (k !== 'portfolio' || items.length); }).map(function(k){ return '<a href="#'+k+'">'+esc(nav[k])+'</a>'; }).join('');
     $('ctaTop').textContent = nav.cta || 'ติดต่อ';
 
     var h = '';
@@ -416,9 +425,9 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     }).join('') + '</div></div></section>';
 
     /* portfolio */
-    var items = arr(pf.items);
-    h += '<section class="block" id="portfolio"><div class="wrap"><h2 class="sec-title sm reveal" style="margin-bottom:28px">'+esc(pf.title)+'</h2><div class="shots">';
+    // The whole section (and its menu link) is hidden until there is at least one item.
     if(items.length){
+      h += '<section class="block" id="portfolio"><div class="wrap"><h2 class="sec-title sm reveal" style="margin-bottom:28px">'+esc(pf.title)+'</h2><div class="shots">';
       h += items.map(function(it,i){
         var imgs = arr(it.images).map(function(x){ return typeof x === 'string' ? x : obj(x).image; }).filter(Boolean);
         var yid = youtubeId(it.video);
@@ -427,10 +436,8 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
           (cover ? '<img src="'+esc(cover)+'" alt="" loading="lazy">' : '') + (yid ? PLAY : '') + '</div>' +
           '<div class="cap"><b>'+esc(it.title)+'</b>'+(it.place?'<span>'+esc(it.place)+'</span>':'')+'</div></button>';
       }).join('');
-    } else {
-      h += '<div class="shot-empty reveal">'+esc(pf.empty_text || '')+'</div>';
+      h += '</div></div></section>';
     }
-    h += '</div></div></section>';
 
     /* contact */
     var services = arr(ct.services);
@@ -486,7 +493,9 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
   function articleList(){ return arr(obj(S.knowledge).articles); }
   function hasDetail(a){ return !!(String(a.body||'').trim() || youtubeId(a.video) || a.file || a.image || arr(a.gallery).length); }
   function initKnowledge(kn){
-    var cats = ['ทั้งหมด'].concat(arr(kn.categories));
+    // Only show categories that have at least one published (non-empty) article.
+    var live = articleList().filter(hasDetail);
+    var cats = ['ทั้งหมด'].concat(arr(kn.categories).filter(function(c){ return live.some(function(a){ return a.category === c; }); }));
     cat = 'ทั้งหมด'; term = '';
     $('chips').innerHTML = cats.map(function(c){
       return '<button type="button" class="chip" data-cat="'+esc(c)+'" aria-pressed="'+(c===cat)+'">'+esc(c)+'</button>';
@@ -509,6 +518,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     var t = term.trim().toLowerCase();
     var rows = [];
     articleList().forEach(function(a,i){
+      if(!hasDetail(a)) return; // empty articles stay hidden until the admin adds content
       if((cat==='ทั้งหมด'||a.category===cat) && (!t || [a.title,a.category,a.kind,a.level].join(' ').toLowerCase().indexOf(t)>-1)) rows.push([a,i]);
     });
     $('articleCount').textContent = 'พบ '+rows.length+' รายการ';

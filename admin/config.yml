@@ -49,13 +49,12 @@ collections:
               - { name: tagline, label: คำโปรยท้ายเว็บ, widget: string, required: false }
 
           - name: seo
-            label: ข้อมูลสำหรับ Google และการแชร์ลิงก์
+            label: ชื่อและคำอธิบายบนแท็บเบราว์เซอร์
             widget: object
             collapsed: true
             fields:
               - { name: title, label: ชื่อที่แสดงบนแท็บเบราว์เซอร์, widget: string }
               - { name: description, label: คำอธิบายเว็บ, widget: text }
-              - { name: share_image, label: รูปตอนแชร์ลิงก์ (LINE / Facebook), widget: image, required: false }
 
           - name: nav
             label: เมนูด้านบน
@@ -137,7 +136,7 @@ collections:
                   - { name: image, label: รูปปก, widget: image, required: false }
                   - { name: video, label: ลิงก์ YouTube, widget: string, required: false, hint: "วางลิงก์ เช่น https://youtu.be/xxxx หรือ https://www.youtube.com/watch?v=xxxx" }
                   - { name: file, label: "ไฟล์ให้ดาวน์โหลด (PDF, Excel, DWG ฯลฯ)", widget: file, required: false }
-                  - { name: body, label: เนื้อหา, widget: markdown, required: false, hint: "ถ้าไม่มีเนื้อหา รูป คลิป หรือไฟล์ การ์ดจะขึ้นว่า 'กำลังจะมาเร็วๆ นี้'" }
+                  - { name: body, label: เนื้อหา, widget: markdown, required: false, hint: "บทความที่ยังไม่มีเนื้อหา รูป คลิป หรือไฟล์ จะถูกซ่อนจากเว็บอัตโนมัติ ใส่หัวข้อเก็บไว้ก่อนได้" }
                   - name: gallery
                     label: รูปเพิ่มเติม (แสดงท้ายบทความ)
                     widget: list
@@ -197,9 +196,9 @@ collections:
           - name: portfolio
             label: ผลงาน (รูป / คลิป)
             widget: object
+            hint: ถ้ายังไม่มีผลงาน ส่วนนี้และเมนูผลงานจะถูกซ่อนจากเว็บอัตโนมัติ
             fields:
               - { name: title, label: หัวข้อ, widget: string }
-              - { name: empty_text, label: ข้อความตอนยังไม่มีผลงาน, widget: string, required: false }
               - name: items
                 label: ผลงาน
                 widget: list
