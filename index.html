@@ -80,7 +80,7 @@ section.block{padding:112px 0 0}
 .sec-title.sm{font-size:36px}
 
 /* knowledge */
-.search{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--field);border-radius:12px;padding:0 16px;min-height:48px;min-width:min(320px,100%)}
+.search{display:flex;flex-direction:row;align-items:center;gap:10px;background:#fff;border:1px solid var(--field);border-radius:12px;padding:0 16px;min-height:48px;min-width:min(320px,100%)}
 .search input{border:0;outline:0;font:inherit;flex:1;background:transparent;color:var(--ink);min-width:0}
 .search:focus-within{outline:3px solid var(--orange);outline-offset:2px}
 .chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px}
@@ -312,7 +312,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     green:  {bg:'var(--sage)',  fg:'#2F6B4F', more:'var(--green)',       icon:'<path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M10 21v-6h4v6"/>'},
     orange: {bg:'var(--peach)', fg:'#A84A14', more:'var(--orange-text)', icon:'<path d="M3 21V3h18v18z"/><path d="M3 12h9V3"/><path d="M12 12v9"/><path d="M16 7h2"/>'}
   };
-  var TONES = ['#E7ECF3','#E3EFE8','#FBE9DC','#EFE7F3','#F3EFE0'];
+  var TONES = ['#E7ECF3','#E3EFE8','#FBE9DC','#EFE7F3','#F3EFE0','#E4EEF1'];
   var CH_ICON = {
     phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
     line:'<path d="M12 4C7 4 3 7.2 3 11.2c0 3.6 3.2 6.6 7.5 7.1l-.5 2.7 3.6-2.6C18 18 21 15 21 11.2 21 7.2 17 4 12 4z"/>',
