@@ -281,99 +281,193 @@
     var POS = { center: [0, 0], edge: [0, -S], corner: [-S, -S] };
     var RECT = { center: [-2, 2, -2, 2], edge: [-2, 2, -S, -2], corner: [-S, -2, -S, -2] };
     var NAMES = { center: 'เสากลาง', edge: 'เสาริม', corner: 'เสามุม' };
-    var W = 440, BEAM = 96;
-    var state = { n: 2, col: 'center', qa: 10, show: true };
+    var W = 440, BEAM = 96, EXAG = 2;
+    var state = { n: 2, col: 'center', qa: 10, fs: 0, lam: 1, show: true, fail: 0, failTarget: 0, play: null, lastInfo: 0, stage: '' };
     var grp = new T.Group(); st.scene.add(grp);
-    var gh = new T.GridHelper(20, 20, 0xC9C3B4, 0xE2DDD0); gh.position.y = -0.001; st.scene.add(gh);
+    var crackGroup = new T.Group(); st.scene.add(crackGroup);
+    var crackGeo = new T.BoxGeometry(1, 1, 1), crackMat = new T.MeshBasicMaterial({ color: 0x2B1D17 });
+    var gh = new T.GridHelper(24, 24, 0xC9C3B4, 0xE2DDD0); gh.position.y = -0.001; st.scene.add(gh);
+    var D = null;   // dynamic parts of the selected column
 
-    var bar = el('div', 's3-bar'), ctl = el('div', 's3-ctl'), out = el('div', 's3-info');
+    /* ----- UI ----- */
+    var bar = el('div', 's3-bar'), ctl = el('div', 's3-ctl'), load = el('div', 's3-ctl'), act = el('div', 's3-bar'), tog = el('div', 's3-bar'), out = el('div', 's3-info');
     var colBtns = {};
     ['center', 'edge', 'corner'].forEach(function (k) {
-      var b = button(NAMES[k], function () { state.col = k; rebuild(); });
+      var b = button(NAMES[k], function () { stopPlay(); state.col = k; state.lam = 1; rebuild(); });
       colBtns[k] = b; bar.appendChild(b);
     });
-    var nLab = el('label', null, 'จำนวนชั้น <span class="unit-in"><input type="range" min="1" max="3" step="1" value="2"><em id="s3n">2 ชั้น</em></span>');
-    var qLab = el('label', null, 'กำลังรับน้ำหนักดิน <span class="unit-in"><input type="number" min="1" step="1" value="10"><em>ตัน/ตร.ม.</em></span>');
-    ctl.appendChild(nLab); ctl.appendChild(qLab);
-    var tog = el('div', 's3-bar');
+    var nLab = el('label', null, 'จำนวนชั้น <span class="unit-in"><input type="range" min="1" max="3" step="1" value="2"><em>2 ชั้น</em></span>');
+    var qLab = el('label', null, 'กำลังรับน้ำหนักของดิน qa <span class="unit-in"><input type="number" min="1" step="1" value="10"><em>ตัน/ตร.ม.</em></span>');
+    var fOpts = '<option value="0" selected>คำนวณให้พอดี</option>' + [0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0].map(function (v) { return '<option value="' + v + '">กว้าง ' + v.toFixed(1) + ' ม.</option>'; }).join('');
+    var fLab = el('label', null, 'ขนาดฐานราก (สี่เหลี่ยมจัตุรัส)<select>' + fOpts + '</select>');
+    var lLab = el('label', null, 'น้ำหนักที่กระทำ (เทียบกับที่ใช้ออกแบบ) <span class="unit-in"><input type="range" min="0" max="300" step="1" value="100"><em>100%</em></span>');
+    ctl.appendChild(nLab); ctl.appendChild(qLab); ctl.appendChild(fLab); load.appendChild(lLab);
+    var nIn = nLab.querySelector('input'), qIn = qLab.querySelector('input'), fSel = fLab.querySelector('select'), lIn = lLab.querySelector('input'), lEm = lLab.querySelector('em');
+    nIn.addEventListener('input', function () { stopPlay(); state.n = +nIn.value; nLab.querySelector('em').textContent = state.n + ' ชั้น'; rebuild(); var hv = home(); st.view(hv[0], hv[1]); });
+    qIn.addEventListener('input', function () { var v = parseFloat(qIn.value); if (v > 0) { stopPlay(); state.qa = v; rebuild(); } });
+    fSel.addEventListener('change', function () { stopPlay(); state.fs = +fSel.value; rebuild(); });
+    lIn.addEventListener('input', function () { stopPlay(); setLam(+lIn.value / 100); syncSlider(); });
+    act.appendChild(button('▶ เพิ่มน้ำหนักจนดินรับไม่ไหว', function () { startPlay(); }));
+    act.appendChild(button('กลับมาที่น้ำหนักออกแบบ', function () { stopPlay(); setLam(1); syncSlider(); }));
+    act.appendChild(button('หมุนกลับมุมเดิม', function () { var hv = home(); st.view(hv[0], hv[1]); }));
     tog.appendChild(checkbox('แสดงพื้นที่รับน้ำหนัก (Tributary Area) และลูกศรน้ำหนัก', '#E8742A', true, function (on) { state.show = on; rebuild(); }));
-    box.appendChild(bar); box.appendChild(ctl); box.appendChild(tog); box.appendChild(out);
-    var nIn = nLab.querySelector('input'), qIn = qLab.querySelector('input');
-    nIn.addEventListener('input', function () { state.n = +nIn.value; nLab.querySelector('em').textContent = state.n + ' ชั้น'; rebuild(); var hv = home(); st.view(hv[0], hv[1]); });
-    qIn.addEventListener('input', function () { var v = parseFloat(qIn.value); if (v > 0) { state.qa = v; rebuild(); } });
+    var hint = el('div', 's3-small', 'ลองเลือกฐานรากให้เล็กลง หรือเลื่อนน้ำหนักเพิ่มขึ้น เพื่อดูว่าดินรับไม่ไหวแล้วโครงสร้างเป็นอย่างไร (ขยายการทรุด ×' + EXAG + ' ให้เห็นชัด)');
+    [bar, ctl, load, act, tog, hint, out].forEach(function (e) { box.appendChild(e); });
+    function syncSlider() { lIn.value = Math.round(state.lam * 100); lEm.textContent = Math.round(state.lam * 100) + '%'; }
 
-    function home() { // camera framing follows the number of storeys
-      var d = 9 + 3.2 * state.n;
-      return [[d * 0.72, d * 0.5 + 1, d * 0.86], [0, state.n * H / 2 + 0.2, 0]];
+    function home() { var d = 9 + 3.2 * state.n; return [[d * 0.72, d * 0.5 + 1, d * 0.86], [0, state.n * H / 2 + 0.2, 0]]; }
+    function color(f) { return new T.Color().setHSL(0.12 - 0.1 * f, 0.85, 0.72 - 0.25 * f); }
+    function box3(parent, w, h, d, x, y, z, c, op) {
+      var m = new T.Mesh(new T.BoxGeometry(w, h, d), stdMat(c, op)); m.position.set(x, y, z); outline(m, 0.3); parent.add(m); return m;
     }
-    function color(f) { // 0..1 -> light yellow to deep orange-red
-      return new T.Color().setHSL(0.12 - 0.1 * f, 0.85, 0.72 - 0.25 * f);
-    }
-    function box3(w, h, d, x, y, z, c, op) {
-      var m = new T.Mesh(new T.BoxGeometry(w, h, d), stdMat(c, op)); m.position.set(x, y, z); outline(m, 0.3); grp.add(m); return m;
-    }
+    function clearCracks() { while (crackGroup.children.length) crackGroup.remove(crackGroup.children[0]); }
+    function addCrack(x, y, z, sx, sy, sz) { var m = new T.Mesh(crackGeo, crackMat); m.position.set(x, y, z); m.scale.set(sx, sy, sz); crackGroup.add(m); }
+
+    /* ----- static scene for the current column / storeys ----- */
     function rebuild() {
-      disposeGroup(grp);
-      var n = state.n, key = state.col, a = AREA[key], perFloor = a * (W + BEAM), total = perFloor * n;
-      var p = POS[key], top = n * H;
+      disposeGroup(grp); clearCracks();
+      var n = state.n, key = state.col, a = AREA[key], perFloor = a * (W + BEAM), Pserv = perFloor * n, p = POS[key], top = n * H;
+      var ixS = AX.indexOf(p[0]), izS = AX.indexOf(p[1]);
       for (var k in colBtns) colBtns[k].className = k === key ? 'on' : '';
-      // beams and slabs for every level (context, light grey)
+      var fAuto = Math.sqrt(Pserv * 1.1 / (state.qa * 1000));
+      D = { sel: new T.Group(), beams: [], segs: [], foot: null, fside: state.fs > 0 ? state.fs : fAuto, fAuto: fAuto };
+      grp.add(D.sel);
       for (var lv = 1; lv <= n; lv++) {
         var y = lv * H;
-        for (var line = 0; line < 3; line++) for (var i = 0; i < 2; i++) {
-          var mid = (AX[i] + AX[i + 1]) / 2;
-          box3(S - 0.3, 0.4, 0.2, mid, y - 0.2, AX[line], 0xD7D3C8);
-          box3(0.2, 0.4, S - 0.3, AX[line], y - 0.2, mid, 0xD7D3C8);
+        for (var line = 0; line < 3; line++) for (var i = 0; i < 2; i++) for (var dir = 0; dir < 2; dir++) {
+          var mid = (AX[i] + AX[i + 1]) / 2, cx = dir === 0 ? mid : AX[line], cz = dir === 0 ? AX[line] : mid;
+          var bm = box3(grp, dir === 0 ? S - 0.3 : 0.2, 0.4, dir === 0 ? 0.2 : S - 0.3, cx, y - 0.2, cz, 0xD7D3C8);
+          var attached = dir === 0 ? (line === izS && (i === ixS - 1 || i === ixS)) : (line === ixS && (i === izS - 1 || i === izS));
+          if (attached) {
+            var A = dir === 0 ? new T.Vector3(AX[i], y - 0.2, AX[line]) : new T.Vector3(AX[line], y - 0.2, AX[i]);
+            var B = dir === 0 ? new T.Vector3(AX[i + 1], y - 0.2, AX[line]) : new T.Vector3(AX[line], y - 0.2, AX[i + 1]);
+            var selIsB = dir === 0 ? i + 1 === ixS : i + 1 === izS;
+            D.beams.push({ m: bm, dir: dir, N: selIsB ? B : A, F: selIsB ? A : B });
+          }
         }
-        [-2, 2].forEach(function (cx) { [-2, 2].forEach(function (cz) { box3(S - 0.05, 0.1, S - 0.05, cx, y - 0.05, cz, 0xE6E2D8, 0.45); }); });
+        [-2, 2].forEach(function (sx) { [-2, 2].forEach(function (sz) { box3(grp, S - 0.05, 0.1, S - 0.05, sx, y - 0.05, sz, 0xE6E2D8, 0.45); }); });
       }
-      // all columns: grey, except the chosen one which is coloured per segment by load carried
       for (var ix = 0; ix < 3; ix++) for (var iz = 0; iz < 3; iz++) {
-        var isSel = AX[ix] === p[0] && AX[iz] === p[1];
-        if (!isSel) { box3(0.3, top + 0.8, 0.3, AX[ix], (top - 0.8) / 2, AX[iz], 0xC9C4B8); box3(1.2, 0.4, 1.2, AX[ix], -1.0, AX[iz], 0xBDB8AC); }
+        if (!(ix === ixS && iz === izS)) { box3(grp, 0.3, top + 0.8, 0.3, AX[ix], (top - 0.8) / 2, AX[iz], 0xC9C4B8); box3(grp, 1.2, 0.4, 1.2, AX[ix], -1.0, AX[iz], 0xBDB8AC); }
       }
+      // the chosen column: coloured per segment by the load it carries, and its footing (these settle together)
       for (var seg = 1; seg <= n; seg++) {
-        var carried = n - seg + 1, f = carried / n;
-        var y0 = (seg - 1) * H, y1 = seg * H, yb = seg === 1 ? -0.8 : y0;
-        var m = box3(0.4, y1 - yb, 0.4, p[0], (yb + y1) / 2, p[1], color(f));
-        var lab = label('รับ ' + carried + ' ชั้น = ' + fmt(perFloor * carried) + ' กก.', { color: '#14273F', bg: 'rgba(255,255,255,.94)', width: 4.4 });
-        lab.position.set(p[0] + (key === 'corner' ? 2.7 : key === 'center' ? 3.7 : 2.7), (yb + y1) / 2 + 0.2, p[1] + 0.6); grp.add(lab);
+        var carried = n - seg + 1, y0 = (seg - 1) * H, y1 = seg * H, yb = seg === 1 ? -0.8 : y0;
+        var m = box3(D.sel, 0.4, y1 - yb, 0.4, p[0], (yb + y1) / 2, p[1], color(carried / n));
+        m.userData.f = carried / n; D.segs.push(m);
+        var lab = label('สะสม ' + fmt(perFloor * carried) + ' กก.', { color: '#14273F', bg: 'rgba(255,255,255,.94)', width: 2.5 });
+        lab.position.set(p[0] + 3.9, (yb + y1) / 2, p[1] + 0.9); grp.add(lab);
       }
-      // tributary area and load arrows
+      D.foot = box3(D.sel, D.fside, 0.5, D.fside, p[0], -1.05, p[1], 0xA5A093);
+      // tributary area and arrows
       if (state.show) {
         var r = RECT[key];
         for (var l2 = 1; l2 <= n; l2++) {
           var pl = new T.Mesh(new T.PlaneGeometry(r[1] - r[0], r[3] - r[2]), new T.MeshBasicMaterial({ color: 0xE8742A, transparent: true, opacity: 0.4, side: T.DoubleSide, depthWrite: false }));
           pl.rotation.x = -Math.PI / 2; pl.position.set((r[0] + r[1]) / 2, l2 * H + 0.03, (r[2] + r[3]) / 2); grp.add(pl);
-          var edges = new T.LineSegments(new T.EdgesGeometry(new T.PlaneGeometry(r[1] - r[0], r[3] - r[2])), new T.LineBasicMaterial({ color: 0xA84A14 }));
-          edges.rotation.x = -Math.PI / 2; edges.position.copy(pl.position); grp.add(edges);
+          var ed = new T.LineSegments(new T.EdgesGeometry(new T.PlaneGeometry(r[1] - r[0], r[3] - r[2])), new T.LineBasicMaterial({ color: 0xA84A14 }));
+          ed.rotation.x = -Math.PI / 2; ed.position.copy(pl.position); grp.add(ed);
           var nx = Math.max(2, Math.round((r[1] - r[0]) / 1.3)), nz = Math.max(2, Math.round((r[3] - r[2]) / 1.3));
           for (var ax = 0; ax < nx; ax++) for (var az = 0; az < nz; az++) {
             var arr = arrowDown(0.55, 0.035, 0xE8742A);
-            arr.position.set(r[0] + (ax + 0.5) * (r[1] - r[0]) / nx, l2 * H + 0.6, r[2] + (az + 0.5) * (r[3] - r[2]) / nz);
-            grp.add(arr);
+            arr.position.set(r[0] + (ax + 0.5) * (r[1] - r[0]) / nx, l2 * H + 0.6, r[2] + (az + 0.5) * (r[3] - r[2]) / nz); grp.add(arr);
           }
-          var tl = label('พื้นที่รับน้ำหนัก ' + a + ' ตร.ม. × ' + (W + BEAM) + ' = ' + fmt(perFloor) + ' กก.', { color: '#fff', bg: '#A84A14', width: 6.2 });
-          tl.position.set((r[0] + r[1]) / 2, l2 * H + 1.7, (r[2] + r[3]) / 2); grp.add(tl);
+          var tl = label(a + ' ตร.ม. → ' + fmt(perFloor) + ' กก./ชั้น', { color: '#fff', bg: '#A84A14', width: 3.4 });
+          tl.position.set((r[0] + r[1]) / 2, l2 * H + 1.25, (r[2] + r[3]) / 2); grp.add(tl);
         }
       }
-      // footing sized from the load
-      var fArea = total * 1.1 / (state.qa * 1000), fSide = Math.sqrt(fArea);
-      box3(fSide, 0.5, fSide, p[0], -1.05, p[1], 0xA5A093);
-      var big = arrowDown(Math.min(0.6 + total / 9000, 3.2), 0.12, 0xB5451B);
-      big.position.set(p[0], -0.8 + Math.min(0.6 + total / 9000, 3.2), p[1] + 0.9); grp.add(big);
-      var fl = label('ΣP = ' + fmt(total) + ' กก. → ฐานรากกว้าง ≈ ' + fmt(fSide, 2) + ' ม.', { color: '#fff', bg: '#14273F', width: 6.6 });
-      fl.position.set(p[0], -2.5, p[1] + 0.6); grp.add(fl);
-      out.innerHTML = '<b>' + NAMES[key] + '</b> · พื้นที่รับน้ำหนัก ' + a + ' ตร.ม. · ' + n + ' ชั้น' +
-        '<br>น้ำหนักต่อชั้น = ' + a + ' × (' + W + ' + ' + BEAM + ' คานและอื่นๆ) = <b>' + fmt(perFloor) + ' กก.</b>' +
-        '<br>น้ำหนักรวมลงฐานราก ΣP = <b>' + fmt(total) + ' กก.</b> (ยังไม่รวมน้ำหนักเสา ผนัง และหลังคา)' +
-        '<br>พื้นที่ฐานราก ≥ ΣP × 1.1 (รวมน้ำหนักฐาน) ÷ กำลังรับน้ำหนักดิน = ' + fmt(total * 1.1) + ' ÷ ' + fmt(state.qa * 1000) + ' = <b>' + fmt(fArea, 2) + ' ตร.ม.</b> → ฐานรากสี่เหลี่ยมจัตุรัสกว้าง ≈ <b>' + fmt(fSide, 2) + ' ม.</b>' +
-        '<br><span class="s3-small">ตัวอย่างเพื่อการศึกษา ใช้ค่าน้ำหนักบรรทุกในบทความ ออกแบบจริงต้องให้วิศวกรตรวจสอบ</span>';
+      // slider range: a little beyond the load at which the soil fails
+      var af = D.fside * D.fside, lamFail = 3 * state.qa * 1000 * af / (1.1 * Pserv);
+      lIn.max = Math.ceil(Math.max(3, lamFail * 1.2) * 100);
+      state.fail = 0; state.failTarget = 0; state.stage = '';
+      syncSlider();
+      setLam(state.lam);
     }
+
+    /* ----- behaviour at the current load ----- */
+    function setLam(l) {
+      state.lam = Math.max(0, l);
+      if (!D) return;
+      var q = state.lam * AREA[state.col] * (W + BEAM) * state.n * 1.1 / (D.fside * D.fside);
+      if (q >= 3 * state.qa * 1000) state.failTarget = 1; else { state.failTarget = 0; state.fail = 0; }
+      apply(true);
+    }
+    function startPlay() {
+      if (!D) return;
+      var Pserv = AREA[state.col] * (W + BEAM) * state.n, af = D.fside * D.fside;
+      state.play = { t: 0, dur: 8, to: 3 * state.qa * 1000 * af / (1.1 * Pserv) * 1.12 };
+      state.fail = 0; state.failTarget = 0; setLam(0);
+      lIn.max = Math.max(+lIn.max, Math.ceil(state.play.to * 100));
+    }
+    function stopPlay() { state.play = null; }
+
+    function apply(force) {
+      if (!D) return;
+      var n = state.n, key = state.col, a = AREA[key], perFloor = a * (W + BEAM), Pserv = perFloor * n, p = POS[key];
+      var P = state.lam * Pserv, af = D.fside * D.fside, qa = state.qa * 1000, qu = 3 * qa, q = P * 1.1 / af;
+      var stage = q <= qa * 1.0001 ? 'ok' : q < qu ? 'warn' : 'fail', f = stage === 'fail' ? state.fail : 0;
+      // qualitative settlement (cm): small up to qa, growing fast between qa and qu, then the soil gives way
+      var ds = q <= qa ? 1.5 * Math.pow(Math.max(q / qa, 0), 1.5) : q < qu ? 1.5 + 25 * Math.pow((q - qa) / (qu - qa), 2) : 26.5 + 30 * f;
+      var vis = EXAG * ds / 100, c = Math.min(1, Math.max(0, (q - qa) / (qu - qa)));
+      D.sel.position.y = -vis;
+      D.foot.rotation.z = 0.16 * f;
+      D.foot.material.color.setHex(stage === 'fail' ? 0x8A3B24 : 0xA5A093);
+      D.segs.forEach(function (m) { m.material.color.copy(stage === 'fail' ? new T.Color(0xB5451B) : color(m.userData.f)); });
+      // beams that frame into this column follow it down
+      D.beams.forEach(function (b) {
+        var Np = b.N.clone(); Np.y -= vis;
+        var mid = Np.clone().add(b.F).multiplyScalar(0.5), vx = Np.x - b.F.x, vy = Np.y - b.F.y, vz = Np.z - b.F.z;
+        b.m.position.copy(mid);
+        if (b.dir === 0) { b.m.rotation.set(0, 0, Math.atan2(vy, vx)); } else { b.m.rotation.set(Math.atan2(-vy, vz), 0, 0); }
+      });
+      clearCracks();
+      if (stage !== 'ok') {
+        var cw = 0.004 + 0.03 * c * (1 + f);
+        D.beams.forEach(function (b) {
+          var Np = b.N.clone(); Np.y -= vis;
+          var pt = Np.clone().lerp(b.F, 0.13);
+          if (b.dir === 0) addCrack(pt.x, pt.y, pt.z, cw, 0.38, 0.24); else addCrack(pt.x, pt.y, pt.z, 0.24, 0.38, cw);
+          var pt2 = Np.clone().lerp(b.F, 0.3);
+          if (c > 0.35) { if (b.dir === 0) addCrack(pt2.x, pt2.y, pt2.z, cw * 0.6, 0.3, 0.24); else addCrack(pt2.x, pt2.y, pt2.z, 0.24, 0.3, cw * 0.6); }
+        });
+      }
+      var now = performance.now();
+      if (force || now - state.lastInfo > 90 || stage !== state.stage) { state.lastInfo = now; state.stage = stage; renderInfo(stage, P, q, ds, perFloor, a, key, n, af); }
+    }
+
+    function renderInfo(stage, P, q, ds, perFloor, a, key, n, af) {
+      var qa = state.qa * 1000, qu = 3 * qa, scale = Math.max(qu * 1.15, q), pos = function (v) { return Math.min(100, v / scale * 100); };
+      var bar = '<div class="s3-cap"><i class="f ' + (stage === 'fail' ? 'bad' : stage === 'warn' ? 'warn' : '') + '" style="width:' + pos(q) + '%"></i>' +
+        '<i class="k y" style="left:' + pos(qa) + '%" title="qa"></i><i class="k m" style="left:' + pos(qu) + '%" title="qu"></i></div>';
+      var msg = {
+        ok: 'ดินรับน้ำหนักได้อย่างปลอดภัย: แรงกดบนดินไม่เกินค่าที่ยอมให้ (qa) ฐานรากทรุดตัวน้อย อาคารเสถียร',
+        warn: 'แรงกดบนดินเกินค่าที่ยอมให้ (q > qa): ฐานรากนี้ทรุดมากกว่าฐานรากข้างเคียง คานที่ต่อกับเสานี้เริ่มแตกร้าวที่รอยต่อกับเสา (รอยดำบนคาน) พื้นและผนังจะร้าวตามมา เหตุการณ์นี้พบบ่อยในงานต่อเติมที่ฐานรากเล็กหรืออยู่บนดินอ่อน',
+        fail: 'ดินวิบัติ (q ถึง qu ประมาณ 3 เท่าของ qa): ฐานรากจมและเอียง เสาและคานรอบๆ ทรุดตามและแตกร้าวรุนแรง ถ้าเป็นบ้านจริงต้องรีบอพยพและให้วิศวกรตรวจ'
+      }[stage];
+      out.innerHTML = '<b>' + NAMES[key] + '</b> · พื้นที่รับน้ำหนัก ' + a + ' ตร.ม. · ' + n + ' ชั้น · น้ำหนักต่อชั้น = ' + a + ' × (' + W + ' + ' + BEAM + ') = <b>' + fmt(perFloor) + ' กก.</b>' +
+        '<div>น้ำหนักที่กระทำ ΣP = <b>' + fmt(P) + ' กก.</b> (' + fmt(state.lam * 100) + '% ของที่ใช้ออกแบบ) · ฐานรากกว้าง <b>' + fmt(D.fside, 2) + ' ม.</b> (' + (state.fs > 0 ? 'เลือกเอง' : 'คำนวณให้พอดี: ΣP × 1.1 ÷ qa = ' + fmt(D.fAuto * D.fAuto, 2) + ' ตร.ม.') + ')</div>' +
+        bar + '<div class="s3-small">แรงกดบนดิน q = ΣP × 1.1 ÷ พื้นที่ฐาน = <b>' + fmt(q / 1000, 1) + '</b> ตัน/ตร.ม. · ค่าที่ยอมให้ qa = ' + fmt(qa / 1000, 1) + ' · ดินวิบัติที่ประมาณ qu = 3qa = ' + fmt(qu / 1000, 1) + ' ตัน/ตร.ม.</div>' +
+        '<div><b' + (stage === 'fail' ? ' style="color:#B5451B"' : '') + '>' + { ok: 'ปลอดภัย', warn: 'เกินค่าที่ยอมให้', fail: 'พังแล้ว' }[stage] + '</b> · ' + msg + '</div>' +
+        '<div class="s3-small">การทรุดตัวในโมเดลเป็นแบบจำลองเชิงคุณภาพเพื่อการเรียนรู้ (ประมาณ ' + fmt(ds, 1) + ' ซม.) ไม่ใช่การคำนวณการทรุดตัวจริง ค่าน้ำหนักใช้ตามบทความ ออกแบบจริงต้องให้วิศวกรตรวจสอบ</div>';
+    }
+
+    st.onFrame(function (dt) {
+      if (!D) return;
+      var dirty = false;
+      if (state.play) {
+        state.play.t += dt; var u = Math.min(1, state.play.t / state.play.dur);
+        state.lam = state.play.to * u; syncSlider();
+        var Pserv = AREA[state.col] * (W + BEAM) * state.n, af = D.fside * D.fside;
+        if (state.lam * Pserv * 1.1 / af >= 3 * state.qa * 1000) state.failTarget = 1;
+        if (u >= 1) state.play = null;
+        dirty = true;
+      }
+      if (state.fail < state.failTarget) { state.fail = Math.min(state.failTarget, state.fail + dt / 1.2); dirty = true; }
+      if (dirty) apply();
+    });
     rebuild();
     var hv0 = home(); st.view(hv0[0], hv0[1], true);
-    bar.appendChild(button('หมุนกลับมุมเดิม', function () { var hv = home(); st.view(hv[0], hv[1]); }));
-    return { dispose: function () { st.dispose(); } };
+    return { dispose: function () { crackGeo.dispose(); crackMat.dispose(); st.dispose(); } };
   }
 
   /* =====================================================================
@@ -456,12 +550,13 @@
     act.appendChild(button('▶ เพิ่มน้ำหนักจนพัง', function () { startPlay(); }));
     act.appendChild(button('ตั้งที่น้ำหนักออกแบบ (Wu)', function () { stopPlay(); if (P) setLam(P.wu / (P.wd + P.wl)); syncSlider(); }));
     var legend = el('div', 's3-small', '<span style="color:#E8742A">■</span> เหล็กยืนล่าง (รับแรงดึง) · <span style="color:#D8321B">■</span> เหล็กที่ครากแล้ว · <span style="color:#3A4556">■</span> เหล็กบน · <span style="color:#14273F">■</span> เหล็กปลอก · เส้นดำบนคาน = รอยร้าว (ขยายการแอ่น ×' + S.exag + ' ให้เห็นชัด)');
-    [bar, tog, ctl, load, act, info, legend].forEach(function (e) { box.appendChild(e); });
+    var cap = el('div', 's3-small');
+    [bar, tog, ctl, load, act, cap, info, legend].forEach(function (e) { box.appendChild(e); });
 
     /* ----- view presets ----- */
     function view(kind) {
       var L = P.L, h = P.h / 100, k = Math.max(1, 1.7 / (st.camera.aspect || 1.6));
-      if (kind === 0) st.view([L * 0.1 * k, h / 2 + 0.5 + L * 0.09 * k, (L * 0.42 + 0.9) * k], [0, -0.05, 0]);
+      if (kind === 0) st.view([L * 0.1 * k, h / 2 + 0.6 + L * 0.1 * k, (L * 0.52 + 1.1) * k], [0, -0.1, 0]);
       else if (kind === 1) st.view([0, 0.05, (L * 0.62 + 1.3) * k], [0, -0.1, 0]);
       else st.view([-L / 2 - 1.1, 0.35, 0.9], [-L / 2 + 0.2, 0, 0]);
     }
@@ -528,8 +623,7 @@
       M.patch.visible = false; grp.add(M.patch);
       var lab = function (txt, o, y) { var sp = label(txt, o); sp.position.set(0, y, 0); sp.visible = S.labels; grp.add(sp); };
       lab('Wu = ' + fmt(p.wu) + ' กก./ม.', { color: '#fff', bg: '#A84A14', width: 1.5 }, h / 2 + 0.58);
-      lab('L = ' + fmt(L, 2) + ' ม.   ' + fmt(p.b) + ' × ' + fmt(p.h) + ' ซม.', { color: '#14273F', bg: 'rgba(255,255,255,.9)', width: 2.2 }, -h / 2 - 0.62);
-      lab('เหล็กยืน ' + n + '-DB' + Math.round(p.db * 10) + '   ' + (p.s > 0 ? 'ปลอก RB6@' + fmt(p.s) + ' ซม.' : 'ไม่มีเหล็กปลอก'), { color: '#fff', bg: '#14273F', width: 3.0 }, -h / 2 - 0.95);
+      cap.innerHTML = '<b>คานนี้:</b> ช่วง L = ' + fmt(L, 2) + ' ม. · ขนาด ' + fmt(p.b) + ' × ' + fmt(p.h) + ' ซม. · เหล็กยืน ' + n + '-DB' + Math.round(p.db * 10) + ' · ' + (p.s > 0 ? 'เหล็กปลอก RB6@' + fmt(p.s) + ' ซม.' : 'ไม่มีเหล็กปลอก');
       applyCut();
       // slider range: up to a bit over the failure load
       var wServ = p.wd + p.wl, lamU = p.wu / wServ, lamF = R.wFail / wServ;

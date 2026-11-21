@@ -761,7 +761,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     if(!s3Promise){
       s3Promise = loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js')
         .then(function(){ return loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js'); })
-        .then(function(){ return loadScript('sim3d.js?v=7'); })
+        .then(function(){ return loadScript('sim3d.js?v=10'); })
         .catch(function(e){ s3Promise = null; throw e; });
     }
     return s3Promise;
