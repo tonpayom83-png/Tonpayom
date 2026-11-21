@@ -1,4 +1,4 @@
-# Admin (Sveltia CMS) settings for the tonpayom website.
+# Admin (Sveltia CMS) settings for the Tonpayom website.
 # Every save from /admin commits to the main branch; GitHub Pages republishes in 1-2 minutes.
 
 backend:
