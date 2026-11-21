@@ -147,6 +147,28 @@ button.article:hover{translate:0 -6px;box-shadow:0 18px 36px rgba(20,39,63,.12)}
 .price span{font-size:15px;line-height:1.65;color:var(--body)}
 .price.dark span{color:#D7DEE8}
 
+/* material calculator */
+.calc{margin-top:32px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:22px}
+.ctabs{display:flex;flex-wrap:wrap;gap:8px}
+.ctabs button{min-height:44px;padding:0 18px;border-radius:999px;font:inherit;font-size:15px;font-weight:500;cursor:pointer;background:#fff;color:var(--navy);border:1px solid var(--field)}
+.ctabs button[aria-selected="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.cpane{display:flex;flex-direction:column;gap:20px}
+.cpane[hidden]{display:none}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px 20px}
+.cgrid select{min-height:48px;padding:0 12px;border:1px solid var(--field);border-radius:10px;font:inherit;font-weight:400;color:var(--ink);background:#fff;width:100%}
+.unit-in{display:flex;align-items:center;border:1px solid var(--field);border-radius:10px;background:#fff;min-height:48px;overflow:hidden}
+.unit-in:focus-within{outline:3px solid var(--orange);outline-offset:2px}
+.unit-in input{border:0;outline:0;min-height:46px;padding:0 12px;font:inherit;font-weight:400;color:var(--ink);background:transparent;width:100%;min-width:0}
+.unit-in em{font-style:normal;font-weight:400;font-size:14px;color:var(--muted);padding:0 12px;white-space:nowrap;background:var(--paper);align-self:stretch;display:flex;align-items:center;border-left:1px solid var(--line)}
+.cresult{background:var(--mist);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.cresult > div{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:15px;color:var(--body)}
+.cresult b{color:var(--ink);font-weight:600}
+.cresult .ctotal{border-top:1px solid var(--field);padding-top:10px;margin-top:4px;font-size:17px}
+.cresult .ctotal b{font-family:Anuphan,sans-serif;font-size:22px;color:var(--navy)}
+.cnote{margin:0;font-size:14px;color:var(--muted);line-height:1.7}
+.cservice{margin-top:20px;background:var(--peach);border-radius:14px;padding:20px 24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.cservice p{margin:0;max-width:720px;color:var(--ink);line-height:1.7}
+
 /* portfolio */
 .shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
 .shot{border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line);padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;transition:translate .3s,box-shadow .3s}
@@ -228,13 +250,17 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
 .reveal{opacity:0;transform:translateY(48px);transition:opacity .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms),transform .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms),translate .3s,box-shadow .3s}
 .reveal.in{opacity:1;transform:none}
 
-@media (max-width:900px){
-  .wrap{padding:0 20px}
-  nav.main{display:none;position:absolute;left:0;right:0;top:72px;background:var(--paper);border-bottom:1px solid var(--line);flex-direction:column;gap:0;padding:8px 20px 16px}
+@media (max-width:1100px){
+  nav.main{display:none;position:absolute;left:0;right:0;top:72px;background:var(--paper);border-bottom:1px solid var(--line);flex-direction:column;gap:0;padding:8px 32px 16px}
   nav.main.open{display:flex}
   nav.main a{padding:14px 0;border-bottom:1px solid var(--line);font-size:17px}
   .menu-btn{display:flex}
+}
+@media (max-width:900px){
+  .wrap{padding:0 20px}
+  nav.main{padding:8px 20px 16px}
   .cta-top{display:none}
+  .calc{padding:20px}
   .hero h1{font-size:38px}
   .hero p{font-size:17px}
   .hero .wrap{padding-top:56px;padding-bottom:96px}
@@ -355,7 +381,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     S = data = obj(data);
     var seo = obj(data.seo), brand = obj(data.brand), nav = obj(data.nav), hero = obj(data.hero),
         kn = obj(data.knowledge), cm = obj(data.community), ds = obj(data.design),
-        pf = obj(data.portfolio), ct = obj(data.contact);
+        pf = obj(data.portfolio), ct = obj(data.contact), calc = obj(data.calculator);
 
     if(seo.title) document.title = seo.title;
     setMeta('description', seo.description); setMeta('og:title', seo.title, true); setMeta('og:description', seo.description, true);
@@ -363,7 +389,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     $('logo').innerHTML = (brand.logo ? '<img src="'+esc(src(brand.logo))+'" alt="">' : LOGO_SVG) + esc(brand.name || '');
     $('logo').setAttribute('aria-label', (brand.name || '') + ' หน้าแรก');
     var items = arr(pf.items);
-    var navKeys = ['knowledge','community','design','portfolio','contact'];
+    var navKeys = ['knowledge','community','design','calc','portfolio','contact'];
     $('nav').innerHTML = navKeys.filter(function(k){ return nav[k] && (k !== 'portfolio' || items.length); }).map(function(k){ return '<a href="#'+k+'">'+esc(nav[k])+'</a>'; }).join('');
     $('ctaTop').textContent = nav.cta || 'ติดต่อ';
 
@@ -424,6 +450,9 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
       return '<div class="price'+(p.highlight?' dark':'')+' reveal"><b>'+esc(p.title)+'</b><span class="big">'+esc(p.price)+(p.unit?' <small>'+esc(p.unit)+'</small>':'')+'</span><span>'+esc(p.text)+'</span></div>';
     }).join('') + '</div></div></section>';
 
+    /* calculator */
+    if(calc.title) h += calcSection(calc);
+
     /* portfolio */
     // The whole section (and its menu link) is hidden until there is at least one item.
     if(items.length){
@@ -476,6 +505,7 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
       }).join('') + '</div></div>';
 
     initKnowledge(kn);
+    if(calc.title) initCalc(calc);
     initForm(ct);
     initReveal();
     if(location.hash){ var t = document.querySelector(location.hash); if(t) t.scrollIntoView(); }
@@ -570,6 +600,104 @@ dialog.viewer::backdrop{background:rgba(14,29,48,.6)}
     if(String(it.text||'').trim()) h += '<div class="prose">'+md(it.text)+'</div>';
     openViewer(it.title, h);
   });
+
+  /* ---------- material calculator ---------- */
+  // Standard rebar weight: d² / 162 kg per metre (d in mm).
+  var BARS = [['RB6',6],['RB9',9],['DB10',10],['DB12',12],['DB16',16],['DB20',20],['DB25',25]];
+  var TILES = [['30×30 ซม.',0.09],['40×40 ซม.',0.16],['60×60 ซม.',0.36],['60×120 ซม.',0.72]];
+  function num(v){ v = parseFloat(String(v).replace(/,/g,'')); return isFinite(v) && v > 0 ? v : 0; }
+  function fmt(n, dp){ return n.toLocaleString('th-TH', {minimumFractionDigits: dp||0, maximumFractionDigits: dp||0}); }
+  function baht(n){ return fmt(Math.round(n)) + ' บาท'; }
+  function field(id, label, val, unit, step){
+    return '<label>'+label+'<span class="unit-in"><input type="number" inputmode="decimal" min="0" step="'+(step||'any')+'" id="'+id+'" value="'+esc(val)+'">'+(unit?'<em>'+unit+'</em>':'')+'</span></label>';
+  }
+  function select(id, label, opts){
+    return '<label>'+label+'<select id="'+id+'">'+opts.map(function(o,i){ return '<option value="'+i+'">'+esc(o)+'</option>'; }).join('')+'</select></label>';
+  }
+  function calcSection(c){
+    var tabs = [['quick','ค่าก่อสร้างโดยรวม'],['concrete','คอนกรีต'],['rebar','เหล็กเสริม'],['wall','ผนังก่ออิฐ'],['tile','กระเบื้อง']];
+    var panels = {
+      quick: '<div class="cgrid">' + field('q-area','พื้นที่ใช้สอยรวม','120','ตร.ม.') +
+        select('q-level','ระดับวัสดุ', arr(c.build_rates).map(function(r){ return r.label; })) + '</div>',
+      concrete: '<div class="cgrid">' + field('c-w','กว้าง','0.20','ม.') + field('c-l','ยาว','4','ม.') + field('c-h','หนา / ลึก','0.40','ม.') +
+        field('c-n','จำนวน','1','ชิ้น','1') + field('c-waste','เผื่อเสีย','5','%') + field('c-price','ราคาคอนกรีต',num(c.concrete_price),'บาท/ลบ.ม.') + '</div>',
+      rebar: '<div class="cgrid">' + select('r-size','ขนาดเหล็ก', BARS.map(function(b){ return b[0]+' ('+fmt(b[1]*b[1]/162,3)+' กก./ม.)'; })) +
+        field('r-len','ความยาวต่อเส้น','10','ม.') + field('r-n','จำนวน','10','เส้น','1') + field('r-waste','เผื่อเสีย','5','%') +
+        field('r-price','ราคาเหล็ก',num(c.rebar_price),'บาท/กก.') + '</div>',
+      wall: '<div class="cgrid">' + field('w-l','ความยาวผนังรวม','10','ม.') + field('w-h','ความสูงผนัง','3','ม.') + field('w-open','หักช่องประตู-หน้าต่าง','0','ตร.ม.') +
+        select('w-type','ชนิดอิฐ', arr(c.bricks).map(function(b){ return b.label; })) + field('w-waste','เผื่อเสีย','5','%') + field('w-price','ราคาต่อก้อน','','บาท') + '</div>',
+      tile: '<div class="cgrid">' + field('t-area','พื้นที่ปู','20','ตร.ม.') + select('t-size','ขนาดกระเบื้อง', TILES.map(function(t){ return t[0]; })) +
+        field('t-waste','เผื่อเสีย / ตัด','10','%') + field('t-price','ราคากระเบื้อง',num(c.tile_price),'บาท/ตร.ม.') + '</div>'
+    };
+    return '<section class="block" id="calc"><div class="wrap"><div class="reveal">' +
+      '<span class="eyebrow">'+esc(c.eyebrow)+'</span><h2 class="sec-title" style="margin:8px 0 14px">'+esc(c.title)+'</h2>' +
+      (c.lead ? '<p class="lead">'+esc(c.lead)+'</p>' : '') + '</div>' +
+      '<div class="calc reveal"><div class="ctabs" role="tablist" aria-label="ประเภทการคำนวณ">' + tabs.map(function(t,i){
+        return '<button type="button" role="tab" id="tab-'+t[0]+'" aria-controls="pane-'+t[0]+'" aria-selected="'+(i===0)+'" tabindex="'+(i===0?0:-1)+'">'+t[1]+'</button>';
+      }).join('') + '</div>' + tabs.map(function(t,i){
+        return '<div class="cpane" role="tabpanel" id="pane-'+t[0]+'" aria-labelledby="tab-'+t[0]+'"'+(i?' hidden':'')+'>'+panels[t[0]]+'<div class="cresult" id="out-'+t[0]+'" aria-live="polite"></div></div>';
+      }).join('') +
+      (c.price_note ? '<p class="cnote">'+esc(c.price_note)+'</p>' : '') + '</div>' +
+      (c.service_note ? '<div class="cservice reveal"><p>'+esc(c.service_note)+'</p><a class="btn btn-navy" href="#contact" data-pick="design">ปรึกษาออกแบบ-เขียนแบบ</a></div>' : '') +
+      '</div></section>';
+  }
+  function initCalc(c){
+    var rates = arr(c.build_rates), bricks = arr(c.bricks), share = num(c.material_share) || 65;
+    function v(id){ var el = $(id); return el ? num(el.value) : 0; }
+    function out(id, rows, total){
+      $(id).innerHTML = rows.map(function(r){ return '<div><span>'+r[0]+'</span><b>'+r[1]+'</b></div>'; }).join('') +
+        (total ? '<div class="ctotal"><span>'+total[0]+'</span><b>'+total[1]+'</b></div>' : '');
+    }
+    function quick(){
+      var a = v('q-area'), r = obj(rates[+$('q-level').value]), lo = a*num(r.min), hi = a*num(r.max);
+      out('out-quick', [['อัตราค่าก่อสร้าง', fmt(num(r.min))+' – '+fmt(num(r.max))+' บาท/ตร.ม.'],['ค่าก่อสร้างรวม (วัสดุ + ค่าแรง)', baht(lo)+' – '+baht(hi)]],
+        ['ค่าวัสดุโดยประมาณ (~'+fmt(share)+'%)', baht(lo*share/100)+' – '+baht(hi*share/100)]);
+    }
+    function concrete(){
+      var vol = v('c-w')*v('c-l')*v('c-h')*(v('c-n')||1), buy = vol*(1+v('c-waste')/100);
+      out('out-concrete', [['ปริมาตรสุทธิ', fmt(vol,2)+' ลบ.ม.'],['สั่งซื้อ (รวมเผื่อเสีย)', fmt(buy,2)+' ลบ.ม.']], ['ค่าคอนกรีต', baht(buy*v('c-price'))]);
+    }
+    function rebar(){
+      var b = BARS[+$('r-size').value], w = b[1]*b[1]/162, kg = w*v('r-len')*v('r-n')*(1+v('r-waste')/100);
+      out('out-rebar', [['น้ำหนักต่อเมตร', fmt(w,3)+' กก.'],['น้ำหนักรวม (รวมเผื่อเสีย)', fmt(kg,1)+' กก.']], ['ค่าเหล็ก', baht(kg*v('r-price'))]);
+    }
+    function wall(){
+      var bk = obj(bricks[+$('w-type').value]), area = Math.max(0, v('w-l')*v('w-h') - v('w-open'));
+      var pcs = Math.ceil(area*num(bk.per_sqm)*(1+v('w-waste')/100));
+      out('out-wall', [['พื้นที่ผนังสุทธิ', fmt(area,2)+' ตร.ม.'],['อัตราใช้', fmt(num(bk.per_sqm),2)+' ก้อน/ตร.ม.'],['จำนวนอิฐ (รวมเผื่อเสีย)', fmt(pcs)+' ก้อน']],
+        ['ค่าอิฐ (ไม่รวมปูนก่อ-ฉาบ)', baht(pcs*v('w-price'))]);
+    }
+    function tile(){
+      var t = TILES[+$('t-size').value], area = v('t-area')*(1+v('t-waste')/100), pcs = Math.ceil(area/t[1]);
+      out('out-tile', [['พื้นที่ซื้อ (รวมเผื่อตัด)', fmt(area,2)+' ตร.ม.'],['จำนวนกระเบื้อง', fmt(pcs)+' แผ่น']], ['ค่ากระเบื้อง (ไม่รวมกาวและค่าแรง)', baht(area*v('t-price'))]);
+    }
+    function setBrickPrice(){ $('w-price').value = num(obj(bricks[+$('w-type').value]).price); }
+    var calcs = {quick:quick, concrete:concrete, rebar:rebar, wall:wall, tile:tile};
+    Object.keys(calcs).forEach(function(k){
+      var pane = $('pane-'+k);
+      pane.addEventListener('input', calcs[k]);
+      pane.addEventListener('change', function(e){ if(e.target.id === 'w-type') setBrickPrice(); calcs[k](); });
+    });
+    setBrickPrice();
+    if(rates.length > 2) $('q-level').value = '1'; // start at the middle (standard) level
+    Object.keys(calcs).forEach(function(k){ calcs[k](); });
+
+    var tabs = [].slice.call(document.querySelectorAll('.ctabs [role=tab]'));
+    function show(t){
+      tabs.forEach(function(x){
+        var on = x === t; x.setAttribute('aria-selected', String(on)); x.tabIndex = on ? 0 : -1;
+        $(x.getAttribute('aria-controls')).hidden = !on;
+      });
+    }
+    tabs.forEach(function(t,i){
+      t.addEventListener('click', function(){ show(t); });
+      t.addEventListener('keydown', function(e){
+        var j = e.key === 'ArrowRight' ? i+1 : e.key === 'ArrowLeft' ? i-1 : -2;
+        if(j === -2) return; e.preventDefault();
+        var n = tabs[(j + tabs.length) % tabs.length]; show(n); n.focus();
+      });
+    });
+  }
 
   /* ---------- form ---------- */
   function initForm(ct){

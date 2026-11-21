@@ -65,6 +65,7 @@ collections:
               - { name: knowledge, label: เมนูคลังความรู้, widget: string, required: false }
               - { name: community, label: เมนูช่วยเหลือชุมชน, widget: string, required: false }
               - { name: design, label: เมนูออกแบบ, widget: string, required: false }
+              - { name: calc, label: เมนูคำนวณวัสดุ, widget: string, required: false }
               - { name: portfolio, label: เมนูผลงาน, widget: string, required: false }
               - { name: contact, label: เมนูติดต่อ, widget: string, required: false }
               - { name: cta, label: ปุ่มมุมขวาบน, widget: string }
@@ -191,6 +192,40 @@ collections:
                   - { name: unit, label: หน่วย เช่น / ตร.ม. หรือ เริ่มต้น, widget: string, required: false }
                   - { name: text, label: รายละเอียด, widget: text, required: false }
                   - { name: highlight, label: เน้นเป็นการ์ดสีเข้ม, widget: boolean, default: false }
+
+          # ---------------- คำนวณวัสดุ ----------------
+          - name: calculator
+            label: เครื่องคำนวณวัสดุก่อสร้าง
+            widget: object
+            hint: ปรับราคาวัสดุให้เป็นปัจจุบันเป็นระยะ ถ้าเว้นหัวข้อว่าง ส่วนนี้จะถูกซ่อน
+            fields:
+              - { name: eyebrow, label: ป้ายหัวข้อ, widget: string, required: false }
+              - { name: title, label: หัวข้อ, widget: string, required: false }
+              - { name: lead, label: ข้อความใต้หัวข้อ, widget: text, required: false }
+              - { name: price_note, label: หมายเหตุเรื่องราคา (แสดงใต้เครื่องคำนวณ), widget: text, required: false }
+              - { name: service_note, label: ข้อความว่ารับเฉพาะงานออกแบบ, widget: text, required: false }
+              - { name: material_share, label: สัดส่วนค่าวัสดุจากค่าก่อสร้างรวม (%), widget: number, value_type: float, min: 1, max: 100 }
+              - name: build_rates
+                label: ค่าก่อสร้างต่อตารางเมตร (บาท)
+                widget: list
+                required: false
+                summary: "{{label}}: {{min}}–{{max}}"
+                fields:
+                  - { name: label, label: ระดับ, widget: string }
+                  - { name: min, label: ต่ำสุด (บาท/ตร.ม.), widget: number, value_type: float }
+                  - { name: max, label: สูงสุด (บาท/ตร.ม.), widget: number, value_type: float }
+              - { name: concrete_price, label: ราคาคอนกรีตผสมเสร็จ (บาท/ลบ.ม.), widget: number, value_type: float }
+              - { name: rebar_price, label: ราคาเหล็กเสริม (บาท/กก.), widget: number, value_type: float }
+              - name: bricks
+                label: ชนิดอิฐ
+                widget: list
+                required: false
+                summary: "{{label}}"
+                fields:
+                  - { name: label, label: ชื่ออิฐ, widget: string }
+                  - { name: per_sqm, label: จำนวนก้อนต่อ 1 ตร.ม., widget: number, value_type: float }
+                  - { name: price, label: ราคาต่อก้อน (บาท), widget: number, value_type: float }
+              - { name: tile_price, label: ราคากระเบื้องเริ่มต้น (บาท/ตร.ม.), widget: number, value_type: float }
 
           # ---------------- ผลงาน ----------------
           - name: portfolio
